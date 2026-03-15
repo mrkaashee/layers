@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { NavigationMenuItem } from '@nuxt/ui'
 
-const links: NavigationMenuItem[] = [
+const tools: NavigationMenuItem[] = [
   { icon: '', label: 'Image', to: '' },
   { icon: '', label: 'PDF', to: '' },
 ]
@@ -9,13 +9,14 @@ const links: NavigationMenuItem[] = [
 
 <template>
   <UHeader title="Tools">
+    <UNavigationMenu :items="tools" variant="pill" highlight class="-mx-2.5 -mb-px" />
     <template #right>
       <UColorModeButton />
     </template>
     <template #bottom>
       <USeparator class="hidden lg:flex" />
       <UContainer class="hidden lg:flex items-center justify-between">
-        <UNavigationMenu :items="links" variant="pill" highlight class="-mx-2.5 -mb-px" />
+        <!--  -->
       </UContainer>
     </template>
   </UHeader>
