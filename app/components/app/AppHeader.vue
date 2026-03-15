@@ -2,8 +2,24 @@
 import type { NavigationMenuItem } from '@nuxt/ui'
 
 const tools: NavigationMenuItem[] = [
-  { icon: '', label: 'Image', to: '' },
-  { icon: '', label: 'PDF', to: '' },
+  {
+    icon: '',
+    label: 'Image',
+    to: '',
+    children: []
+  },
+  {
+    icon: '',
+    label: 'PDF',
+    to: '',
+    children: []
+  },
+  {
+    icon: '',
+    label: 'Calculator',
+    to: '',
+    children: []
+  },
 ]
 </script>
 
