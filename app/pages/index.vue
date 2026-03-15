@@ -10,6 +10,13 @@ const categories = computed(() => {
   }
   return map
 })
+
+const statusConfig = {
+  active: { color: 'success' as const, label: 'Active' },
+  pending: { color: 'warning' as const, label: 'Pending' },
+  planned: { color: 'info' as const, label: 'Planned' },
+  proposed: { color: 'neutral' as const, label: 'Proposed' },
+}
 </script>
 
 <template>
@@ -32,7 +39,13 @@ const categories = computed(() => {
             :description="tool.description"
             variant="subtle">
             <template #footer>
-              <UBadge :label="category" color="neutral" variant="subtle" />
+              <div class="flex items-center gap-2">
+                <UBadge :label="category" color="neutral" variant="subtle" />
+                <UBadge
+                  :label="statusConfig[tool.status].label"
+                  :color="statusConfig[tool.status].color"
+                  variant="subtle" />
+              </div>
             </template>
           </UPageCard>
         </div>
