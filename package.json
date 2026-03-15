@@ -1,5 +1,5 @@
 {
-  "name": "layers",
+  "name": "tools",
   "type": "module",
   "private": true,
   "scripts": {
