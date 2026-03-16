@@ -35,7 +35,7 @@ const statusConfig = {
           label="All"
           icon="i-lucide-layout-grid"
           color="neutral"
-          :variant="selectedCategory === null ? 'solid' : 'outline'"
+          :variant="selectedCategory === null ? 'solid' : 'subtle'"
           @click="selectedCategory = null" />
         <UButton
           v-for="[category, categoryTools] in categories"
