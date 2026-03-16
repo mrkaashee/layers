@@ -11,6 +11,14 @@ const categories = computed(() => {
   return map
 })
 
+const selectedCategory = ref<string | null>(null)
+
+const filteredCategories = computed(() => {
+  if (!selectedCategory.value) return categories.value
+  const entry = categories.value.get(selectedCategory.value)
+  return entry ? new Map([[selectedCategory.value, entry]]) : categories.value
+})
+
 const statusConfig = {
   active: { color: 'success' as const, label: 'Active' },
   pending: { color: 'warning' as const, label: 'Pending' },
@@ -22,7 +30,23 @@ const statusConfig = {
 <template>
   <UMain>
     <UContainer class="py-10 space-y-12">
-      <div v-for="[category, categoryTools] in categories" :key="category">
+      <div class="flex flex-wrap justify-center gap-4">
+        <UButton
+          label="All"
+          icon="i-lucide-layout-grid"
+          color="neutral"
+          :variant="selectedCategory === null ? 'solid' : 'outline'"
+          @click="selectedCategory = null" />
+        <UButton
+          v-for="[category, categoryTools] in categories"
+          :key="category"
+          :icon="categoryTools[0]!.category.icon"
+          :label="category"
+          color="neutral"
+          :variant="selectedCategory === category ? 'solid' : 'subtle'"
+          @click="selectedCategory = category" />
+      </div>
+      <div v-for="[category, categoryTools] in filteredCategories" :key="category">
         <div class="flex items-center gap-2 mb-6">
           <UIcon :name="categoryTools[0]!.category.icon" class="size-5 text-primary" />
           <h2 class="text-lg font-semibold">
