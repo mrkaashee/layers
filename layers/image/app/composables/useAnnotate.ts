@@ -173,13 +173,13 @@ export function useAnnotate(zoomLevel: Ref<number> = ref(1)) {
     }
   )
 
-  const initiateMove = (e: MouseEvent, ann: AnnotationData) => {
+  const initiateMove = (e: MouseEvent | TouchEvent, ann: AnnotationData) => {
     interactionMode.value = 'moving'
     selectedId.value = ann.id
     startInteraction(e, 'moving', ann)
   }
 
-  const initiateResize = (e: MouseEvent, ann: AnnotationData, handle: string) => {
+  const initiateResize = (e: MouseEvent | TouchEvent, ann: AnnotationData, handle: string) => {
     interactionMode.value = 'resizing'
     interactionHandle.value = handle
     selectedId.value = ann.id

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { getEventPoint } from '../utils/interaction'
 import type { ImageEditorContext, AnnotationData, TextAnnotation } from '../types/editor'
 import ImgHandler from './ImgHandler.vue'
 
@@ -63,19 +64,23 @@ watch(isActive, val => {
   }
 }, { immediate: true })
 
-const handlePointerDown = (e: MouseEvent) => {
+const handlePointerDown = (e: MouseEvent | TouchEvent) => {
   if (!isActive.value || !imgEditor) return
   const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
-  const x = (e.clientX - rect.left) / imgEditor.zoomLevel.value
-  const y = (e.clientY - rect.top) / imgEditor.zoomLevel.value
+  const p = getEventPoint(e)
+  if (!p) return
+  const x = (p.clientX - rect.left) / imgEditor.zoomLevel.value
+  const y = (p.clientY - rect.top) / imgEditor.zoomLevel.value
   annotatePointerDown(x, y)
 }
 
-const handlePointerMove = (e: MouseEvent) => {
+const handlePointerMove = (e: MouseEvent | TouchEvent) => {
   if (!isDrawing.value || !imgEditor) return
   const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
-  const x = (e.clientX - rect.left) / imgEditor.zoomLevel.value
-  const y = (e.clientY - rect.top) / imgEditor.zoomLevel.value
+  const p = getEventPoint(e)
+  if (!p) return
+  const x = (p.clientX - rect.left) / imgEditor.zoomLevel.value
+  const y = (p.clientY - rect.top) / imgEditor.zoomLevel.value
   annotatePointerMove(x, y)
 }
 
@@ -207,9 +212,12 @@ onUnmounted(() => {
       <svg
         class="u-img-annotate-svg absolute inset-0 w-full h-full pointer-events-auto overflow-visible"
         style="cursor: crosshair;"
-        @mousedown="handlePointerDown"
+        @mousedown.stop="handlePointerDown"
+        @touchstart.stop="handlePointerDown"
         @mousemove="handlePointerMove"
-        @mouseup="handlePointerUp">
+        @touchmove="handlePointerMove"
+        @mouseup="handlePointerUp"
+        @touchend="handlePointerUp">
         <defs>
           <marker
             id="arrowhead"
@@ -230,7 +238,8 @@ onUnmounted(() => {
           :key="ann.id"
           class="cursor-grab transition-all duration-200"
           :class="{ 'cursor-grabbing group is-selected': selectedId === ann.id }"
-          @mousedown.stop="initiateMove($event, ann)">
+          @mousedown.stop="initiateMove($event, ann)"
+          @touchstart.stop="initiateMove($event, ann)">
           <rect
             v-if="ann.type === 'rect'"
             :x="ann.x"
@@ -279,22 +288,22 @@ onUnmounted(() => {
           <template v-if="selectedId === ann.id">
             <template v-if="ann.type === 'rect'">
               <foreignObject :x="ann.x - 12" :y="ann.y - 12" width="24" height="24">
-                <ImgHandler position="tl" @mousedown="initiateResize($event, ann, 'tl')" />
+                <ImgHandler position="tl" @mousedown.stop="initiateResize($event, ann, 'tl')" @touchstart.stop="initiateResize($event, ann, 'tl')" />
               </foreignObject>
               <foreignObject :x="ann.x + ann.width - 12" :y="ann.y - 12" width="24" height="24">
-                <ImgHandler position="tr" @mousedown="initiateResize($event, ann, 'tr')" />
+                <ImgHandler position="tr" @mousedown.stop="initiateResize($event, ann, 'tr')" @touchstart.stop="initiateResize($event, ann, 'tr')" />
               </foreignObject>
               <foreignObject :x="ann.x - 12" :y="ann.y + ann.height - 12" width="24" height="24">
-                <ImgHandler position="bl" @mousedown="initiateResize($event, ann, 'bl')" />
+                <ImgHandler position="bl" @mousedown.stop="initiateResize($event, ann, 'bl')" @touchstart.stop="initiateResize($event, ann, 'bl')" />
               </foreignObject>
               <foreignObject :x="ann.x + ann.width - 12" :y="ann.y + ann.height - 12" width="24" height="24">
-                <ImgHandler position="br" @mousedown="initiateResize($event, ann, 'br')" />
+                <ImgHandler position="br" @mousedown.stop="initiateResize($event, ann, 'br')" @touchstart.stop="initiateResize($event, ann, 'br')" />
               </foreignObject>
             </template>
 
             <template v-else-if="ann.type === 'circle'">
               <foreignObject :x="getCircleHandleX(ann)" :y="getCircleHandleY(ann)" width="24" height="24">
-                <ImgHandler position="br" @mousedown="initiateResize($event, ann, 'radius')" />
+                <ImgHandler position="br" @mousedown.stop="initiateResize($event, ann, 'radius')" @touchstart.stop="initiateResize($event, ann, 'radius')" />
               </foreignObject>
             </template>
           </template>
@@ -312,7 +321,8 @@ onUnmounted(() => {
               variant="solid"
               size="xs"
               class="rounded-full p-1!"
-              @click.stop="removeAnnotation(ann.id)" />
+              @click.stop="removeAnnotation(ann.id)"
+              @touchstart.stop="removeAnnotation(ann.id)" />
           </foreignObject>
         </g>
 
