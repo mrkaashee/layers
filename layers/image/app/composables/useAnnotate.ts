@@ -14,8 +14,8 @@ export function useAnnotate(zoomLevel: Ref<number> = ref(1)) {
   const currentAnnotation = ref<AnnotationData | null>(null)
 
   const properties = ref({
-    fill: 'color-mix(in srgb, var(--ui-primary) 20%, transparent)',
-    stroke: 'var(--ui-primary)',
+    fill: '#00000033', // 20% opacity black
+    stroke: '#000000', // Black
     strokeWidth: 2,
     fontSize: 24,
     text: 'Double click to edit'
@@ -193,6 +193,14 @@ export function useAnnotate(zoomLevel: Ref<number> = ref(1)) {
     if (annotations.value.length === 0) return
 
     const clonedSvg = svgElement.cloneNode(true) as SVGSVGElement
+
+    // Remove UI-only elements before rendering to canvas to prevent tainting
+    // and ensure only the annotations are baked.
+    const UI_SELECTORS = ['foreignObject', '.u-img-annotate-ui']
+    UI_SELECTORS.forEach(selector => {
+      clonedSvg.querySelectorAll(selector).forEach(el => el.remove())
+    })
+
     clonedSvg.setAttribute('width', canvas.width.toString())
     clonedSvg.setAttribute('height', canvas.height.toString())
     clonedSvg.style.cursor = 'default'

@@ -500,9 +500,14 @@ const updateCanvas = (imageData: string | HTMLCanvasElement, skipDataUrl = false
     if (!skipDataUrl) {
       setTimeout(() => {
         if (!canvasRef.value) return
-        const newImageState = canvasRef.value.toDataURL(imageState.value.format)
-        imageState.value.current = newImageState
-        notifyChange()
+        try {
+          const newImageState = canvasRef.value.toDataURL(imageState.value.format)
+          imageState.value.current = newImageState
+          notifyChange()
+        }
+        catch (e) {
+          console.warn('ImgStudio: Failed to update image state (canvas may be tainted)', e)
+        }
       }, 0)
     }
   }
@@ -519,10 +524,15 @@ const commit = (imageData: string | HTMLCanvasElement, _tool: string) => {
     updateCanvas(imageData, true)
     setTimeout(() => {
       if (!canvasRef.value) return
-      const historyData = canvasRef.value.toDataURL(imageState.value.format)
-      imageState.value.current = historyData
-      notifyChange()
-      commitToHistory()
+      try {
+        const historyData = canvasRef.value.toDataURL(imageState.value.format)
+        imageState.value.current = historyData
+        notifyChange()
+        commitToHistory()
+      }
+      catch (e) {
+        console.error('ImgStudio: Failed to commit (canvas may be tainted)', e)
+      }
     }, 10)
   }
 }

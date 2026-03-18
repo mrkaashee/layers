@@ -143,11 +143,17 @@ const applyDrawing = (): Promise<string | null> => {
     const tempCtx = tempCanvas.getContext('2d')
 
     if (tempCtx) {
-      tempCtx.drawImage(baseCanvasRef.value, 0, 0)
-      if (overlayCanvasRef.value) {
-        tempCtx.drawImage(overlayCanvasRef.value, 0, 0)
+      try {
+        tempCtx.drawImage(baseCanvasRef.value, 0, 0)
+        if (overlayCanvasRef.value) {
+          tempCtx.drawImage(overlayCanvasRef.value, 0, 0)
+        }
+        resolve(tempCanvas.toDataURL())
       }
-      resolve(tempCanvas.toDataURL())
+      catch (e) {
+        console.error('ImgDrawing: Failed to export drawing (canvas may be tainted)', e)
+        resolve(null)
+      }
     }
     else {
       resolve(null)
