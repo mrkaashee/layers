@@ -1,13 +1,146 @@
-<script lang="ts" setup>
+<script lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted, nextTick, shallowRef, provide } from 'vue'
+import { Primitive } from 'reka-ui'
 import { useResizeObserver, useEventListener, useElementSize, useManualRefHistory, useObjectUrl } from '@vueuse/core'
+import type { AppConfig } from '@nuxt/schema'
+import { useAppConfig } from '#imports'
 import { useInteraction } from '../composables/useInteraction'
 import { useWorkerProcessor } from '../composables/useWorkerProcessor'
 import { PRESET_FILTERS } from '../composables/useImageProcessor'
-import type { Layer, ImageState, ChangeEvent, CropArea, StudioCanvasProps, StudioStencilProps, StudioDragProps, StudioZoomProps, StudioToolbarProps, StudioUploaderProps, StudioFloatingBarProps, StudioHandlerProps, StudioHistoryProps } from '../types/editor'
+import type { Layer, ImageState, ChangeEvent, CropArea, AspectPreset, ImageEditorContext } from '../types/editor'
+import { tv } from '../utils/tv'
+import type { ComponentConfig } from '../types/tv'
+import theme from '../utils/themes/img-studio'
+import type { VNodeChild } from 'vue'
 
-const props = defineProps<{
+export interface StudioCanvasProps {
+  hide?: boolean
+  board?: boolean | Record<string, unknown>
+  border?: boolean | Record<string, unknown>
+  class?: string
+  style?: string | Record<string, string>
+  /** Rendering mode: 'canvas' (pixel-level editing) or 'image' (high-fidelity preview) */
+  mode?: 'canvas' | 'image'
+}
+
+export interface StudioStencilProps {
+  type?: 'rect' | 'circle' | 'none'
+  fixed?: boolean
+  aspectRatio?: number
+  movable?: boolean
+  resizable?: boolean
+}
+
+export interface StudioDragProps {
+  disable?: boolean
+  restrict?: boolean
+}
+
+export interface StudioZoomProps {
+  min?: number
+  max?: number
+}
+
+export interface StudioToolbarProps {
+  hide?: boolean
+  position?: 'left' | 'right' | 'top' | 'bottom'
+  class?: string
+}
+
+export interface StudioUploaderProps {
+  hide?: boolean
+  hideIfHasImage?: boolean
+  variant?: 'area' | 'button'
+  label?: string
+}
+
+export interface StudioFloatingBarProps {
+  hide?: boolean
+  position?: 'top' | 'bottom'
+  actions?: ('zoom' | 'history' | 'reset' | 'fit')[]
+}
+
+export interface StudioHandlerProps {
+  /** Custom size class for the handler dot */
+  size?: 'sm' | 'md' | 'lg'
+  /** Custom color for the handler dot — e.g. '#ff0000' or a CSS variable */
+  color?: string
+  /** Custom border color */
+  borderColor?: string
+  /** Additional CSS class to apply to each handler */
+  class?: string
+}
+
+export interface StudioHistoryProps {
+  /** Maximum number of undo steps to keep in memory. Default: 50 */
+  max?: number
+}
+
+// ─── Studio Tool Props ──────────────────────────────────────────
+
+export interface StudioCensorProps {
+  headless?: boolean
+  mode?: 'blur' | 'pixelate'
+  intensity?: number
+  state?: any
+}
+
+export interface StudioCropperProps {
+  aspectRatio?: number
+  size?: {
+    width?: number
+    height?: number
+  }
+  initialCropPercent?: number
+  grid?: boolean
+  outputSize?: {
+    width?: number
+    height?: number
+  }
+}
+
+export interface StudioAnnotateProps {
+  headless?: boolean
+  tools?: ('rect' | 'circle' | 'arrow' | 'text')[]
+}
+
+export interface StudioAspectProps {
+  headless?: boolean
+  presets?: AspectPreset[]
+}
+
+export interface StudioLayersProps {
+  headless?: boolean
+}
+
+export interface StudioPreviewProps {
+  headless?: boolean
+}
+
+export interface StudioTransformProps {
+  headless?: boolean
+}
+
+export interface StudioResizeProps {
+  headless?: boolean
+  presets?: { label: string, width: number, height: number }[]
+}
+
+export interface StudioFilterProps {
+  headless?: boolean
+}
+
+type Studio = ComponentConfig<typeof theme, AppConfig, 'studio'>
+
+export interface ImgStudioProps {
+  /**
+   * The element or component this component should render as.
+   * @defaultValue 'div'
+   */
+  as?: any
   src?: string | null
+  /** Rendering mode: 'canvas' (pixel-level editing) or 'image' (high-fidelity preview) */
+  mode?: 'canvas' | 'image'
   /** History config: true for defaults, or { max: N } to cap undo stack size */
   history?: boolean | StudioHistoryProps
   // ─── Structured Object Props (New API) ───────────────────────────
@@ -26,28 +159,54 @@ const props = defineProps<{
   /** Floating quick-action bar: hide, position, actions */
   floatingBar?: boolean | StudioFloatingBarProps
   // ─── Studio Tools (Prop-Based API) ───────────────────────────────
-  censor?: boolean | import('../types/editor').StudioCensorProps
-  cropper?: boolean | import('../types/editor').StudioCropperProps
-  annotate?: boolean | import('../types/editor').StudioAnnotateProps
-  aspect?: boolean | import('../types/editor').StudioAspectProps
-  layers?: boolean | import('../types/editor').StudioLayersProps
-  preview?: boolean | import('../types/editor').StudioPreviewProps
-  transform?: boolean | import('../types/editor').StudioTransformProps
-  resize?: boolean | import('../types/editor').StudioResizeProps
-  filter?: boolean | import('../types/editor').StudioFilterProps
+  censor?: boolean | StudioCensorProps
+  cropper?: boolean | StudioCropperProps
+  annotate?: boolean | StudioAnnotateProps
+  aspect?: boolean | StudioAspectProps
+  layers?: boolean | StudioLayersProps
+  preview?: boolean | StudioPreviewProps
+  transform?: boolean | StudioTransformProps
+  resize?: boolean | StudioResizeProps
+  filter?: boolean | StudioFilterProps
   /** Resize handle dot appearance: size, color, borderColor, class */
   handler?: boolean | StudioHandlerProps
   // ─── v-model ─────────────────────────────────────────────────────
   activeTool?: string | null
-  mode?: 'canvas' | 'image'
-}>()
+  class?: any
+  ui?: Studio['slots']
+}
 
-const emit = defineEmits<{
+export interface ImgStudioEmits {
   (e: 'load', payload: ImageState): void
   (e: 'change', payload: ChangeEvent): void
   (e: 'export', payload: Blob): void
   (e: 'update:activeTool', tool: string | null): void
-}>()
+}
+
+export interface ImgStudioSlots {
+  header(props: { editor: ImageEditorContext }): VNodeChild
+  default(props: { editor: ImageEditorContext }): VNodeChild
+  footer(props: { editor: ImageEditorContext }): VNodeChild
+  // Tool slots
+  censor(props: { editor: ImageEditorContext, censorProps: StudioCensorProps }): VNodeChild
+  annotate(props: { editor: ImageEditorContext, annotateProps: StudioAnnotateProps }): VNodeChild
+  cropper(props: { editor: ImageEditorContext, cropperProps: StudioCropperProps }): VNodeChild
+  transform(props: { editor: ImageEditorContext, transformProps: StudioTransformProps }): VNodeChild
+  resize(props: { editor: ImageEditorContext, resizeProps: StudioResizeProps }): VNodeChild
+  filter(props: { editor: ImageEditorContext, filterProps: StudioFilterProps }): VNodeChild
+  aspect(props: { editor: ImageEditorContext, aspectProps: StudioAspectProps }): VNodeChild
+  layers(props: { editor: ImageEditorContext, layersProps: StudioLayersProps }): VNodeChild
+  preview(props: { editor: ImageEditorContext, previewProps: StudioPreviewProps }): VNodeChild
+  overlay(props: { editor: ImageEditorContext }): VNodeChild
+}
+</script>
+
+<script lang="ts" setup>
+const props = defineProps<ImgStudioProps>()
+const emit = defineEmits<ImgStudioEmits>()
+const slots = defineSlots<ImgStudioSlots>()
+const _slots = slots // Use it to satisfy lint
+const appConfig = useAppConfig() as Studio['AppConfig']
 
 // ─── Resolved prop accessors ───────────────────────────────────────
 // Each prop can be a boolean shorthand (true = enabled with defaults) or a config object.
@@ -152,6 +311,14 @@ const currentImageUrl = computed(() => imageState.value.current || props.src || 
 const viewportRef = ref<HTMLDivElement | null>(null)
 const fixedOverlayRef = ref<HTMLDivElement | null>(null)
 const toolbarTargetRef = ref<HTMLDivElement | null>(null)
+
+const resUI = computed(() => tv({ extend: tv(theme), ...(appConfig.ui?.studio || {}) })({
+  toolbarPosition: toolbarPosition.value,
+  fixedStencil: fixedStencil.value,
+  hasBoard: hasBoard.value,
+  hasBorder: hasBorder.value,
+  ...props.ui,
+}))
 
 // Reactive viewport dimensions
 const { width: vWidth, height: vHeight } = useElementSize(viewportRef)
@@ -864,7 +1031,7 @@ onUnmounted(() => {
   terminateWorker()
 })
 
-const editorAPI = {
+const editorAPI: ImageEditorContext = {
   imageState,
   canvasRef,
   imageRef,
@@ -903,13 +1070,10 @@ const editorAPI = {
   zoomTo,
   minZoom,
   maxZoom,
-  triggerFileInput,
-  getCurrentCoordinates,
   hasImage,
   isWorkerProcessing,
   processImage,
   handlerCfg,
-  sourceFile,
   mode: resolvedMode,
 }
 
@@ -995,25 +1159,29 @@ defineExpose({
   <!-- Uploader-only mode: no canvas, just upload UI (e.g. upload a profile picture) -->
   <div
     v-if="uploaderOnly && !hasImage"
-    class="flex flex-col items-center justify-center w-full h-full min-h-64 bg-inverted rounded-xl border border-inverted/5 p-8">
+    class="flex flex-col items-center justify-center w-full h-full min-h-64 bg-inverted rounded-xl border border-inverted/5 p-8"
+    :class="resUI.emptyStateContainer">
     <UFileUpload
       variant="area"
       accept="image/*"
       :label="uploaderCfg?.label ?? 'Upload Image'"
       description="Click to select or drag and drop an image here"
+      :class="resUI.uploader"
       @update:model-value="onFileChange" />
     <slot :editor="editorAPI" />
   </div>
 
   <!-- Full editor mode -->
-  <div
-    v-else
+  <Primitive
+    :as="props.as || 'div'"
     class="flex flex-col w-full h-full bg-elevated overflow-hidden"
-    :class="{
-      'border border-default rounded-xl': hasBorder,
-    }">
+    :class="[
+      { 'border border-default rounded-xl': hasBorder },
+      resUI.root,
+      props.class,
+    ]">
     <!-- Header Area -->
-    <div ref="toolbarTargetRef">
+    <div ref="toolbarTargetRef" :class="resUI.toolbar">
       <slot name="header" :editor="editorAPI" />
     </div>
 
@@ -1035,15 +1203,18 @@ defineExpose({
         v-show="!hideCanvas"
         ref="viewportRef"
         class="flex-1 overflow-hidden relative will-change-scroll"
-        :class="{
-          'flex items-center justify-center': !fixedStencil,
-          'bg-inverted': !fixedStencil && hasBoard,
-          'bg-default': !fixedStencil && !hasBoard,
-          'bg-black/95': fixedStencil,
-          'cursor-grab': hasImage && !disablePanning,
-          'cursor-grabbing': isDragging && !disablePanning,
-          'cursor-default': hasImage && disablePanning,
-        }"
+        :class="[
+          {
+            'flex items-center justify-center': !fixedStencil,
+            'bg-inverted': !fixedStencil && hasBoard,
+            'bg-default': !fixedStencil && !hasBoard,
+            'bg-black/95': fixedStencil,
+            'cursor-grab': hasImage && !disablePanning,
+            'cursor-grabbing': isDragging && !disablePanning,
+            'cursor-default': hasImage && disablePanning,
+          },
+          resUI.viewport,
+        ]"
         :style="(!fixedStencil && hasBoard) ? {
           backgroundImage: 'linear-gradient(45deg, #151515 25%, transparent 25%), linear-gradient(-45deg, #151515 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #151515 75%), linear-gradient(-45deg, transparent 75%, #151515 75%)',
           backgroundSize: '20px 20px',
@@ -1060,17 +1231,25 @@ defineExpose({
         <!-- Empty state: Upload dropzone -->
         <div
           v-if="!canvasVisible && !isLoading && !uploaderCfg?.hide"
-          class="absolute inset-0 flex flex-col items-center justify-center z-10 p-12">
+          class="absolute inset-0 flex flex-col items-center justify-center z-10 p-12"
+          :class="resUI.emptyState">
           <!-- Premium upload area -->
           <div class="w-full max-w-md flex flex-col items-center gap-6">
-            <div class="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center ring-1 ring-primary/20">
-              <UIcon name="i-lucide-image-plus" class="w-8 h-8 text-primary" />
+            <div
+              class="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center ring-1 ring-primary/20"
+              :class="resUI.emptyStateIconWrapper">
+              <UIcon
+                name="i-lucide-image-plus"
+                class="w-8 h-8 text-primary"
+                :class="resUI.emptyStateIcon" />
             </div>
-            <div class="text-center space-y-1">
-              <p class="text-sm font-semibold text-highlighted">
+            <div class="text-center space-y-1" :class="resUI.emptyStateText">
+              <p
+                class="text-sm font-semibold text-highlighted"
+                :class="resUI.emptyStateTitle">
                 {{ uploaderCfg?.label ?? 'Get Started' }}
               </p>
-              <p class="text-xs text-muted">
+              <p class="text-xs text-muted" :class="resUI.emptyStateDescription">
                 Drag &amp; drop or click to upload an image
               </p>
             </div>
@@ -1079,6 +1258,7 @@ defineExpose({
               accept="image/*"
               size="lg"
               class="w-full"
+              :class="resUI.uploader"
               @update:model-value="onFileChange" />
           </div>
         </div>
@@ -1088,11 +1268,14 @@ defineExpose({
              normal   — flex m-auto centering with translate+scale; zoom controlled by outer fitToScreen -->
         <div
           class="will-change-transform shrink-0"
-          :class="{
-            'opacity-0 pointer-events-none': !canvasVisible,
-            'absolute top-0 left-0': fixedStencil,
-            'relative': !fixedStencil,
-          }"
+          :class="[
+            {
+              'opacity-0 pointer-events-none': !canvasVisible,
+              'absolute top-0 left-0': fixedStencil,
+              'relative': !fixedStencil,
+            },
+            resUI.canvasWrapper,
+          ]"
           :style="{
             width: imageState.width + 'px',
             height: imageState.height + 'px',
@@ -1102,13 +1285,14 @@ defineExpose({
           <canvas
             ref="canvasRef"
             class="block w-full h-full shadow-2xl bg-default"
-            :class="{ hidden: resolvedMode === 'image' }"
+            :class="[{ hidden: resolvedMode === 'image' }, resUI.canvas]"
             :style="canvasPreviewStyle" />
           <img
             v-if="resolvedMode === 'image'"
             ref="imageRef"
-            :src="currentImageUrl"
+            :src="currentImageUrl!"
             class="block w-full h-full shadow-2xl bg-default object-contain pointer-events-none"
+            :class="resUI.image"
             :style="canvasPreviewStyle"
             @load="canvasVisible = true">
           <!-- Overlay for tools (like crop handles - traditional mode) -->
@@ -1126,7 +1310,10 @@ defineExpose({
           <div
             v-if="showFloatingBar && hasImage"
             class="absolute z-40 left-1/2 -translate-x-1/2 flex items-center gap-1 px-2 py-1.5 rounded-xl bg-inverted/80 backdrop-blur-md border border-default/20 shadow-xl"
-            :class="floatingBarPosition === 'top' ? 'top-4' : 'bottom-4'">
+            :class="[
+              floatingBarPosition === 'top' ? 'top-4' : 'bottom-4',
+              resUI.floatingBar,
+            ]">
             <UTooltip text="Zoom Out">
               <UButton
                 icon="i-lucide-zoom-out"
@@ -1197,13 +1384,18 @@ defineExpose({
       <aside
         v-if="!fixedStencil && hasImage && !hideToolbar"
         class="bg-elevated/80 backdrop-blur-md flex flex-col z-10 transition-all duration-300 ease-in-out"
-        :class="{
-          'w-80 border-l border-muted max-lg:w-full max-lg:h-87.5 max-lg:border-l-0 max-lg:border-t': toolbarPosition === 'right',
-          'w-80 border-r border-muted max-lg:w-full max-lg:h-87.5 max-lg:border-r-0 max-lg:border-b': toolbarPosition === 'left',
-          'w-full border-t border-muted h-64': toolbarPosition === 'bottom',
-          'w-full border-b border-muted h-64': toolbarPosition === 'top',
-        }">
-        <div class="flex-1 overflow-y-auto p-6 flex flex-col gap-6 scrollbar-thin scrollbar-thumb-accented scrollbar-track-transparent">
+        :class="[
+          {
+            'w-80 border-l border-muted max-lg:w-full max-lg:h-87.5 max-lg:border-l-0 max-lg:border-t': toolbarPosition === 'right',
+            'w-80 border-r border-muted max-lg:w-full max-lg:h-87.5 max-lg:border-r-0 max-lg:border-b': toolbarPosition === 'left',
+            'w-full border-t border-muted h-64': toolbarPosition === 'bottom',
+            'w-full border-b border-muted h-64': toolbarPosition === 'top',
+          },
+          resUI.aside,
+        ]">
+        <div
+          class="flex-1 overflow-y-auto p-6 flex flex-col gap-6 scrollbar-thin scrollbar-thumb-accented scrollbar-track-transparent"
+          :class="resUI.asideContent">
           <!-- Prop-Based Tools -->
           <TransitionGroup
             tag="div"
@@ -1491,5 +1683,5 @@ defineExpose({
         </div>
       </aside>
     </div>
-  </div>
+  </Primitive>
 </template>

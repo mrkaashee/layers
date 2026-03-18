@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { inject } from 'vue'
 import type { ImageEditorContext } from '../types/editor'
+import type { StudioResizeProps } from './ImgStudio.vue'
 
-const props = defineProps<import('../types/editor').StudioResizeProps>()
+const props = defineProps<StudioResizeProps>()
 
 const imgStudio = inject<ImageEditorContext>('imgStudio')
 

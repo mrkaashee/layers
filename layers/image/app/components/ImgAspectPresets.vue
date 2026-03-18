@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { inject, ref, computed } from 'vue'
-import type { ImageEditorContext, AspectPreset, StudioAspectProps } from '../types/editor'
+import type { ImageEditorContext, AspectPreset } from '../types/editor'
+import type { StudioAspectProps } from './ImgStudio.vue'
 
 const props = defineProps<StudioAspectProps>()
 

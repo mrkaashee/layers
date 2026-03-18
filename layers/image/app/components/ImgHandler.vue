@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { inject, computed } from 'vue'
-import type { ImgHandlerProps, ImageEditorContext } from '../types/editor'
+import type { ImageEditorContext } from '../types/editor'
+import type { StudioHandlerProps as ImgHandlerProps } from './ImgStudio.vue'
 
 const props = defineProps<ImgHandlerProps>()
 

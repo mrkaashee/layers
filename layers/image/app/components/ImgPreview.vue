@@ -1,8 +1,9 @@
 <script lang="ts" setup>
 import { ref, computed, inject } from 'vue'
 import type { ImageEditorContext } from '../types/editor'
+import type { StudioPreviewProps } from './ImgStudio.vue'
 
-const props = defineProps<import('../types/editor').StudioPreviewProps & {
+const props = defineProps<StudioPreviewProps & {
   avatarMode?: boolean
   size?: number
 }>()

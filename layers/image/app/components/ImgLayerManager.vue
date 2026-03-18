@@ -1,8 +1,10 @@
+```
 <script setup lang="ts">
 import { inject, computed } from 'vue'
 import type { ImageEditorContext, Layer } from '../types/editor'
+import type { StudioLayersProps } from './ImgStudio.vue'
 
-const props = defineProps<import('../types/editor').StudioLayersProps>()
+const props = defineProps<StudioLayersProps>()
 
 const imgStudio = inject<ImageEditorContext>('imgStudio')
 

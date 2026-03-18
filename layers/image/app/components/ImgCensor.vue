@@ -2,16 +2,11 @@
 import { computed, inject, watch, onUnmounted, onMounted } from 'vue'
 import { useCensor } from '../composables/useCensor'
 import type { ImageEditorContext } from '../types/editor'
+import type { StudioCensorProps } from './ImgStudio.vue'
 import { getEventPoint } from '../utils/interaction'
 import ImgHandler from './ImgHandler.vue'
 
-const props = defineProps<{
-  /** Hide internal UI controls — useful when controls are in a separate sidebar. */
-  headless?: boolean
-  mode?: 'blur' | 'pixelate'
-  intensity?: number
-  state?: ReturnType<typeof useCensor>
-}>()
+const props = defineProps<StudioCensorProps>()
 
 const imgStudio = inject<ImageEditorContext>('imgStudio')
 

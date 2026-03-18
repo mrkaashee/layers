@@ -3,12 +3,10 @@ import { computed, watch, onUnmounted, inject } from 'vue'
 import { useAnnotate } from '../composables/useAnnotate'
 import { getEventPoint } from '../utils/interaction'
 import type { ImageEditorContext, AnnotationData, TextAnnotation } from '../types/editor'
+import type { StudioAnnotateProps } from './ImgStudio.vue'
 import ImgHandler from './ImgHandler.vue'
 
-const props = defineProps<{
-  headless?: boolean
-  tools?: ('rect' | 'circle' | 'arrow' | 'text')[]
-}>()
+const props = defineProps<StudioAnnotateProps>()
 
 const imgStudio = inject<ImageEditorContext>('imgStudio')
 

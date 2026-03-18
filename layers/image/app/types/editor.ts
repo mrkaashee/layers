@@ -114,9 +114,9 @@ export interface ImageEditorContext {
   maxZoom: ComputedRef<number> | Ref<number>
   hasImage: ComputedRef<boolean> | Ref<boolean>
   isWorkerProcessing: Ref<boolean>
-  processImage: (imageData: ImageData, settings: FilterOptions) => Promise<ImageData>
+  processImage: (imageData: ImageData, settings: any) => Promise<ImageData>
   /** Handler (resize dot) configuration passed down from :handler prop on ImgStudio */
-  handlerCfg?: ComputedRef<StudioHandlerProps | null>
+  handlerCfg?: ComputedRef<any>
 }
 
 // Global Component State Types
@@ -127,23 +127,23 @@ export interface HistoryState {
 }
 
 export interface FilterOptions {
-  brightness?: number
-  contrast?: number
-  saturate?: number
-  blur?: number
-  grayscale?: number
-  sepia?: number
-  hueRotate?: number
-  exposure?: number
-  highlights?: number
-  shadows?: number
-  vibrance?: number
-  clarity?: number
-  temperature?: number
-  tint?: number
-  whites?: number
-  blacks?: number
-  sharpen?: number
+  brightness: number
+  contrast: number
+  saturate: number
+  blur: number
+  grayscale: number
+  sepia: number
+  hueRotate: number
+  exposure: number
+  highlights: number
+  shadows: number
+  vibrance: number
+  clarity: number
+  temperature: number
+  tint: number
+  whites: number
+  blacks: number
+  sharpen: number
   lastPreset?: string
 }
 
@@ -170,120 +170,28 @@ export interface ImgActionButtonsProps {
   filename?: string
 }
 
-// Structured Prop Types for ImgStudio/ImgEditor
-export interface StudioCanvasProps {
-  hide?: boolean
-  board?: boolean | Record<string, unknown>
-  border?: boolean | Record<string, unknown>
-  class?: string
-  style?: string | Record<string, string>
-  /** Rendering mode: 'canvas' (pixel-level editing) or 'image' (high-fidelity preview) */
-  mode?: 'canvas' | 'image'
+export interface TransformerState {
+  rotation: number
+  flipHorizontal: boolean
+  flipVertical: boolean
 }
 
-export interface StudioStencilProps {
-  type?: 'rect' | 'circle' | 'none'
-  fixed?: boolean
-  aspectRatio?: number
-  movable?: boolean
-  resizable?: boolean
-}
-
-export interface StudioDragProps {
-  disable?: boolean
-  restrict?: boolean
-}
-
-export interface StudioZoomProps {
-  min?: number
-  max?: number
-}
-
-export interface StudioToolbarProps {
-  hide?: boolean
-  position?: 'left' | 'right' | 'top' | 'bottom'
-  class?: string
-}
-
-export interface StudioUploaderProps {
-  hide?: boolean
-  hideIfHasImage?: boolean
-  variant?: 'area' | 'button'
-  label?: string
-}
-
-export interface StudioFloatingBarProps {
-  hide?: boolean
-  position?: 'top' | 'bottom'
-  actions?: ('zoom' | 'history' | 'reset' | 'fit')[]
-}
-
-export interface StudioHandlerProps {
-  /** Custom size class for the handler dot */
-  size?: 'sm' | 'md' | 'lg'
-  /** Custom color for the handler dot — e.g. '#ff0000' or a CSS variable */
-  color?: string
-  /** Custom border color */
-  borderColor?: string
-  /** Additional CSS class to apply to each handler */
-  class?: string
-}
-
-export interface StudioHistoryProps {
-  /** Maximum number of undo steps to keep in memory. Default: 50 */
-  max?: number
-}
-
-// ─── Studio Tool Props ──────────────────────────────────────────
-
-export interface StudioCensorProps {
-  headless?: boolean
-  mode?: 'blur' | 'pixelate'
-  intensity?: number
-  state?: any
-}
-
-export interface StudioCropperProps {
-  aspectRatio?: number
-  size?: {
-    width?: number
-    height?: number
-  }
-  initialCropPercent?: number
-  grid?: boolean
-  outputSize?: {
-    width?: number
-    height?: number
-  }
-}
-
-export interface StudioAnnotateProps {
-  headless?: boolean
-  tools?: ('rect' | 'circle' | 'arrow' | 'text')[]
-}
-
-export interface StudioAspectProps {
-  headless?: boolean
-  presets?: AspectPreset[]
-}
-
-export interface StudioLayersProps {
-  headless?: boolean
-}
-
-export interface StudioPreviewProps {
-  headless?: boolean
-}
-
-export interface StudioTransformProps {
-  headless?: boolean
-}
-
-export interface StudioResizeProps {
-  headless?: boolean
-  presets?: { label: string, width: number, height: number }[]
-}
-
-export interface StudioFilterProps {
-  headless?: boolean
+export interface StudioUI {
+  root?: string
+  toolbar?: string
+  viewport?: string
+  canvasWrapper?: string
+  canvas?: string
+  image?: string
+  floatingBar?: string
+  aside?: string
+  asideContent?: string
+  uploader?: string
+  emptyState?: string
+  emptyStateContainer?: string
+  emptyStateIconWrapper?: string
+  emptyStateIcon?: string
+  emptyStateText?: string
+  emptyStateTitle?: string
+  emptyStateDescription?: string
 }

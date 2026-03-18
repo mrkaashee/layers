@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { ref, inject, watch, onUnmounted } from 'vue'
 import type { ImageEditorContext, FilterOptions } from '../types/editor'
+import type { StudioFilterProps } from './ImgStudio.vue'
 
-const props = defineProps<import('../types/editor').StudioFilterProps>()
+const props = defineProps<StudioFilterProps>()
 
 const imgStudio = inject<ImageEditorContext>('imgStudio')
 

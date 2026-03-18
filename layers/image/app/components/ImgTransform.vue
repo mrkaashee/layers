@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { ref, inject } from 'vue'
 import type { ImageEditorContext, TransformState } from '../types/editor'
+import type { StudioTransformProps } from './ImgStudio.vue'
 
-const props = defineProps<import('../types/editor').StudioTransformProps>()
+const props = defineProps<StudioTransformProps>()
 
 const imgStudio = inject<ImageEditorContext>('imgStudio')
 
