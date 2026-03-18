@@ -2,6 +2,8 @@
 import { ref, inject } from 'vue'
 import type { ImageEditorContext, TransformState } from '../types/editor'
 
+const props = defineProps<import('../types/editor').StudioTransformProps>()
+
 const imgStudio = inject<ImageEditorContext>('imgStudio')
 
 const currentTransform = ref<TransformState>({

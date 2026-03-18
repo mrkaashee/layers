@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, inject, watch, onUnmounted, onMounted } from 'vue'
+import { computed, inject, watch, onUnmounted, onMounted } from 'vue'
 import { useCensor } from '../composables/useCensor'
 import type { ImageEditorContext } from '../types/editor'
 import { getEventPoint } from '../utils/interaction'
@@ -8,6 +8,8 @@ import ImgHandler from './ImgHandler.vue'
 const props = defineProps<{
   /** Hide internal UI controls — useful when controls are in a separate sidebar. */
   headless?: boolean
+  mode?: 'blur' | 'pixelate'
+  intensity?: number
   censorState?: ReturnType<typeof useCensor>
 }>()
 
@@ -25,14 +27,24 @@ const setBoxRef = (id: string, el: HTMLElement | null) => {
 }
 
 // Proxy state values to top-level writable computeds for the template
-const mode = computed({
+const censorMode = computed({
   get: () => state.value.mode.value,
   set: val => state.value.mode.value = val
 })
-const intensity = computed({
+const censorIntensity = computed({
   get: () => state.value.intensity.value,
   set: val => state.value.intensity.value = val
 })
+
+// Initialize defaults from props if provided
+watch(() => props.mode, newMode => {
+  if (newMode) censorMode.value = newMode
+}, { immediate: true })
+
+watch(() => props.intensity, newIntensity => {
+  if (newIntensity !== undefined) censorIntensity.value = newIntensity
+}, { immediate: true })
+
 const useArea = computed({
   get: () => state.value.useArea.value,
   set: val => state.value.useArea.value = val
@@ -99,8 +111,8 @@ const handleMouseDown = (e: MouseEvent | TouchEvent) => {
 const counterScale = computed(() => 1 / (imgStudio?.zoomLevel.value || 1))
 
 defineExpose({
-  mode: state.value.mode,
-  intensity: state.value.intensity,
+  mode: censorMode,
+  intensity: censorIntensity,
   useArea: state.value.useArea,
   isActive,
   applyCensor
@@ -134,16 +146,16 @@ defineExpose({
         <div class="grid grid-cols-2 gap-2">
           <UButton
             label="Blur"
-            :color="mode === 'blur' ? 'primary' : 'neutral'"
-            :variant="mode === 'blur' ? 'solid' : 'soft'"
+            :color="censorMode === 'blur' ? 'primary' : 'neutral'"
+            :variant="censorMode === 'blur' ? 'solid' : 'soft'"
             size="xs"
-            @click="mode = 'blur'" />
+            @click="censorMode = 'blur'" />
           <UButton
             label="Pixelate"
-            :color="mode === 'pixelate' ? 'primary' : 'neutral'"
-            :variant="mode === 'pixelate' ? 'solid' : 'soft'"
+            :color="censorMode === 'pixelate' ? 'primary' : 'neutral'"
+            :variant="censorMode === 'pixelate' ? 'solid' : 'soft'"
             size="xs"
-            @click="mode = 'pixelate'" />
+            @click="censorMode = 'pixelate'" />
         </div>
 
         <div class="space-y-3">
@@ -155,9 +167,9 @@ defineExpose({
           <div class="space-y-1.5">
             <div class="flex justify-between text-[10px] text-muted uppercase font-medium">
               <span>Intensity</span>
-              <span>{{ intensity }}</span>
+              <span>{{ censorIntensity }}</span>
             </div>
-            <USlider v-model="intensity" :min="1" :max="50" size="sm" />
+            <USlider v-model="censorIntensity" :min="1" :max="50" size="sm" />
           </div>
         </div>
 

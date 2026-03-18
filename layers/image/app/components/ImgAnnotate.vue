@@ -1,9 +1,14 @@
 <script setup lang="ts">
-import { ref, computed, watch, onUnmounted, inject } from 'vue'
+import { computed, watch, onUnmounted, inject } from 'vue'
 import { useAnnotate } from '../composables/useAnnotate'
 import { getEventPoint } from '../utils/interaction'
 import type { ImageEditorContext, AnnotationData, TextAnnotation } from '../types/editor'
 import ImgHandler from './ImgHandler.vue'
+
+const props = defineProps<{
+  headless?: boolean
+  tools?: ('rect' | 'circle' | 'arrow' | 'text')[]
+}>()
 
 const imgStudio = inject<ImageEditorContext>('imgStudio')
 
@@ -106,7 +111,7 @@ onUnmounted(() => {
 
 <template>
   <div class="space-y-4 select-none">
-    <div class="flex items-center justify-between">
+    <div v-if="!props.headless" class="flex items-center justify-between">
       <h3 class="text-[10px] font-bold uppercase tracking-widest text-muted">
         Annotations
       </h3>
@@ -119,30 +124,34 @@ onUnmounted(() => {
       </UBadge>
     </div>
 
-    <div class="grid grid-cols-4 gap-2">
+    <div v-if="!props.headless" class="grid grid-cols-4 gap-2">
       <UButton
+        v-if="!props.tools || props.tools.includes('rect')"
         icon="i-lucide-square"
         :color="activeAnnotationTool === 'rect' ? 'primary' : 'neutral'"
         variant="soft"
         @click="startAnnotating('rect')" />
       <UButton
+        v-if="!props.tools || props.tools.includes('circle')"
         icon="i-lucide-circle"
         :color="activeAnnotationTool === 'circle' ? 'primary' : 'neutral'"
         variant="soft"
         @click="startAnnotating('circle')" />
       <UButton
+        v-if="!props.tools || props.tools.includes('arrow')"
         icon="i-lucide-arrow-right"
         :color="activeAnnotationTool === 'arrow' ? 'primary' : 'neutral'"
         variant="soft"
         @click="startAnnotating('arrow')" />
       <UButton
+        v-if="!props.tools || props.tools.includes('text')"
         icon="i-lucide-type"
         :color="activeAnnotationTool === 'text' ? 'primary' : 'neutral'"
         variant="soft"
         @click="startAnnotating('text')" />
     </div>
 
-    <div v-if="isActive" class="space-y-4 border-t border-default pt-4">
+    <div v-if="isActive && !props.headless" class="space-y-4 border-t border-default pt-4">
       <!-- Properties Grid -->
       <div v-if="selectedAnnotation" class="bg-muted p-2 rounded-lg space-y-3">
         <div class="flex items-center justify-between">

@@ -2,6 +2,8 @@
 import { inject } from 'vue'
 import type { ImageEditorContext } from '../types/editor'
 
+const props = defineProps<import('../types/editor').StudioResizeProps>()
+
 const imgStudio = inject<ImageEditorContext>('imgStudio')
 
 const applyResize = (maxWidth: number, maxHeight: number) => {

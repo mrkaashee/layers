@@ -228,3 +228,56 @@ export interface StudioHistoryProps {
   /** Maximum number of undo steps to keep in memory. Default: 50 */
   max?: number
 }
+
+// ─── Studio Tool Props ──────────────────────────────────────────
+
+export interface StudioCensorProps {
+  headless?: boolean
+  mode?: 'blur' | 'pixelate'
+  intensity?: number
+}
+
+export interface StudioCropperProps {
+  aspectRatio?: number
+  size?: {
+    width?: number
+    height?: number
+  }
+  initialCropPercent?: number
+  grid?: boolean
+  outputSize?: {
+    width?: number
+    height?: number
+  }
+}
+
+export interface StudioAnnotateProps {
+  headless?: boolean
+  tools?: ('rect' | 'circle' | 'arrow' | 'text')[]
+}
+
+export interface StudioAspectProps {
+  headless?: boolean
+  presets?: AspectPreset[]
+}
+
+export interface StudioLayersProps {
+  headless?: boolean
+}
+
+export interface StudioPreviewProps {
+  headless?: boolean
+}
+
+export interface StudioTransformProps {
+  headless?: boolean
+}
+
+export interface StudioResizeProps {
+  headless?: boolean
+  presets?: { label: string, width: number, height: number }[]
+}
+
+export interface StudioFilterProps {
+  headless?: boolean
+}

@@ -2,7 +2,7 @@
 import { ref, computed, inject } from 'vue'
 import type { ImageEditorContext } from '../types/editor'
 
-const props = defineProps<{
+const props = defineProps<import('../types/editor').StudioPreviewProps & {
   avatarMode?: boolean
   size?: number
 }>()
@@ -62,7 +62,7 @@ const avatarPreviewStyle = computed(() => {
 
   <!-- Normal Mode -->
   <div v-else-if="imgStudio?.hasImage" class="space-y-3">
-    <div class="flex items-center justify-between px-1">
+    <div v-if="!props.headless" class="flex items-center justify-between px-1">
       <h3 class="text-[10px] font-bold uppercase tracking-widest text-muted">
         Preview & Compare
       </h3>

@@ -5,11 +5,10 @@ export interface CropperProps {
   mode?: CropperMode
   shape?: CropperShape
   aspectRatio?: number
-  minWidth?: number
-  minHeight?: number
-  maxWidth?: number
-  maxHeight?: number
+  size?: { width?: number, height?: number }
+  outputSize?: { width?: number, height?: number }
   initialCropPercent?: number
+  grid?: boolean
   borderStyle?: 'solid' | 'dashed'
   enableZoom?: boolean
   minZoom?: number

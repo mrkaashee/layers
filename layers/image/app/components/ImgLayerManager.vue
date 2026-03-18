@@ -2,6 +2,8 @@
 import { inject, computed } from 'vue'
 import type { ImageEditorContext, Layer } from '../types/editor'
 
+const props = defineProps<import('../types/editor').StudioLayersProps>()
+
 const imgStudio = inject<ImageEditorContext>('imgStudio')
 
 const layers = computed(() => imgStudio?.layers.value || [])
@@ -36,7 +38,7 @@ const getLayerIcon = (type: string) => {
 
 <template>
   <div class="flex flex-col gap-3">
-    <div class="flex items-center justify-between px-2">
+    <div v-if="!props.headless" class="flex items-center justify-between px-2">
       <h4 class="text-[10px] font-bold uppercase tracking-widest text-muted">
         Layers
       </h4>

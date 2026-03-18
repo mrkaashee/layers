@@ -26,15 +26,15 @@ const props = defineProps<{
   /** Floating quick-action bar: hide, position, actions */
   floatingBar?: boolean | StudioFloatingBarProps
   // ─── Studio Tools (Prop-Based API) ───────────────────────────────
-  censor?: boolean | Record<string, unknown>
-  cropper?: boolean | Record<string, unknown>
-  annotate?: boolean | Record<string, unknown>
-  aspect?: boolean | Record<string, unknown>
-  layers?: boolean | Record<string, unknown>
-  preview?: boolean | Record<string, unknown>
-  transform?: boolean | Record<string, unknown>
-  resize?: boolean | Record<string, unknown>
-  filter?: boolean | Record<string, unknown>
+  censor?: boolean | import('../types/editor').StudioCensorProps
+  cropper?: boolean | import('../types/editor').StudioCropperProps
+  annotate?: boolean | import('../types/editor').StudioAnnotateProps
+  aspect?: boolean | import('../types/editor').StudioAspectProps
+  layers?: boolean | import('../types/editor').StudioLayersProps
+  preview?: boolean | import('../types/editor').StudioPreviewProps
+  transform?: boolean | import('../types/editor').StudioTransformProps
+  resize?: boolean | import('../types/editor').StudioResizeProps
+  filter?: boolean | import('../types/editor').StudioFilterProps
   /** Resize handle dot appearance: size, color, borderColor, class */
   handler?: boolean | StudioHandlerProps
   // ─── v-model ─────────────────────────────────────────────────────
@@ -1268,9 +1268,21 @@ defineExpose({
                   Quick Sizes
                 </h3>
                 <div class="grid grid-cols-3 gap-1">
-                  <UButton label="SD" size="xs" color="neutral" variant="subtle" @click="applyResize(800, 600)" />
-                  <UButton label="HD" size="xs" color="neutral" variant="subtle" @click="applyResize(1280, 720)" />
-                  <UButton label="FHD" size="xs" color="neutral" variant="subtle" @click="applyResize(1920, 1080)" />
+                  <template v-if="typeof props.resize === 'object' && props.resize.presets">
+                    <UButton
+                      v-for="preset in props.resize.presets"
+                      :key="preset.label"
+                      :label="preset.label"
+                      size="xs"
+                      color="neutral"
+                      variant="subtle"
+                      @click="applyResize(preset.width, preset.height)" />
+                  </template>
+                  <template v-else>
+                    <UButton label="SD" size="xs" color="neutral" variant="subtle" @click="applyResize(800, 600)" />
+                    <UButton label="HD" size="xs" color="neutral" variant="subtle" @click="applyResize(1280, 720)" />
+                    <UButton label="FHD" size="xs" color="neutral" variant="subtle" @click="applyResize(1920, 1080)" />
+                  </template>
                 </div>
               </div>
             </ImgResize>

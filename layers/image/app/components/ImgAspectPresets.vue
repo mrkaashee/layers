@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { inject, ref } from 'vue'
-import type { ImageEditorContext, AspectPreset } from '../types/editor'
+import { inject, ref, computed } from 'vue'
+import type { ImageEditorContext, AspectPreset, StudioAspectProps } from '../types/editor'
+
+const props = defineProps<StudioAspectProps>()
 
 const imgStudio = inject<ImageEditorContext>('imgStudio')
 
-const presets: AspectPreset[] = [
+const defaultPresets: AspectPreset[] = [
   { id: 'ig-post', name: 'IG Post', icon: 'i-simple-icons-instagram', ratio: 1 / 1, platform: 'Instagram' },
   { id: 'ig-story', name: 'IG Story', icon: 'i-simple-icons-instagram', ratio: 9 / 16, platform: 'Instagram' },
   { id: 'ig-portrait', name: 'IG Portrait', icon: 'i-simple-icons-instagram', ratio: 4 / 5, platform: 'Instagram' },
@@ -14,6 +16,8 @@ const presets: AspectPreset[] = [
   { id: 'sq', name: 'Square', icon: 'i-lucide-square', ratio: 1 / 1, platform: 'General' },
   { id: 'hd', name: 'Widescreen', icon: 'i-lucide-monitor', ratio: 16 / 9, platform: 'General' }
 ]
+
+const activePresets = computed(() => props.presets && props.presets.length > 0 ? props.presets : defaultPresets)
 
 const activePreset = ref<string | null>(null)
 
@@ -28,7 +32,7 @@ const applyRatio = (preset: AspectPreset) => {
 
 <template>
   <div class="space-y-4 select-none">
-    <div class="flex items-center justify-between">
+    <div v-if="!props.headless" class="flex items-center justify-between">
       <h3 class="text-[10px] font-bold uppercase tracking-widest text-muted">
         Aspect Ratios
       </h3>
@@ -36,7 +40,7 @@ const applyRatio = (preset: AspectPreset) => {
 
     <div class="grid grid-cols-2 gap-2">
       <UButton
-        v-for="preset in presets"
+        v-for="preset in activePresets"
         :key="preset.id"
         :label="preset.name"
         :icon="preset.icon"

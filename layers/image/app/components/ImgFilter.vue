@@ -2,6 +2,8 @@
 import { ref, inject, watch, onUnmounted } from 'vue'
 import type { ImageEditorContext, FilterOptions } from '../types/editor'
 
+const props = defineProps<import('../types/editor').StudioFilterProps>()
+
 const imgStudio = inject<ImageEditorContext>('imgStudio')
 
 const currentFilters = ref<FilterOptions>({
