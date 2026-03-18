@@ -21,7 +21,6 @@ onMounted(() => {
   <div class="h-[calc(100vh-var(--header-top-height,64px))] w-full flex flex-col bg-background relative">
     <ClientOnly>
       <ImgStudio ref="editorRef" borderless filter>
-        
         <template #header>
           <div class="flex items-center justify-between px-4 py-3 border-b border-default bg-elevated z-10 w-full relative">
             <div class="flex items-center gap-3">
@@ -29,11 +28,15 @@ onMounted(() => {
                 <UIcon name="i-lucide-sparkles" class="size-5" />
               </div>
               <div>
-                <h1 class="font-bold tracking-tight text-sm">Photo Filters</h1>
-                <p class="text-[10px] text-muted hidden sm:block">Transform your photos with professional filters and adjustments.</p>
+                <h1 class="font-bold tracking-tight text-sm">
+                  Photo Filters
+                </h1>
+                <p class="text-[10px] text-muted hidden sm:block">
+                  Transform your photos with professional filters and adjustments.
+                </p>
               </div>
             </div>
-            
+
             <div class="flex gap-2">
               <UButton
                 label="Undo"
@@ -58,7 +61,6 @@ onMounted(() => {
             </div>
           </div>
         </template>
-        
       </ImgStudio>
     </ClientOnly>
   </div>

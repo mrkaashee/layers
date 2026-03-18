@@ -113,8 +113,7 @@ const downloadImage = () => {
               enter-to-class="transform translate-y-0 opacity-100"
               leave-active-class="transition duration-200 ease-in"
               leave-from-class="transform translate-y-0 opacity-100"
-              leave-to-class="transform translate-y-2 opacity-0"
-            >
+              leave-to-class="transform translate-y-2 opacity-0">
               <div
                 v-if="isConverting"
                 class="flex items-center gap-2 px-3 py-2 bg-primary/10 border border-primary/20 rounded-lg text-[10px] font-bold text-primary uppercase tracking-wider">

@@ -23,8 +23,7 @@ onMounted(() => {
       <ImgStudio
         ref="editorRef"
         borderless
-        transform
-      >
+        transform>
         <template #header>
           <div class="flex items-center justify-between px-4 py-3 border-b border-default bg-elevated z-10 w-full relative">
             <div class="flex items-center gap-3">
@@ -40,7 +39,7 @@ onMounted(() => {
                 </p>
               </div>
             </div>
-            
+
             <div class="flex gap-2">
               <UButton
                 label="Undo"
@@ -70,8 +69,7 @@ onMounted(() => {
         <template #transform="{ transformProps }">
           <ImgTransform
             v-slot="{ rotate, flipHorizontal, flipVertical, currentTransform }"
-            v-bind="transformProps"
-          >
+            v-bind="transformProps">
             <div class="space-y-6">
               <div class="space-y-4">
                 <h3 class="font-bold text-[10px] uppercase tracking-widest text-muted flex items-center gap-2 px-1">
@@ -131,7 +129,6 @@ onMounted(() => {
             </div>
           </ImgTransform>
         </template>
-        
       </ImgStudio>
     </ClientOnly>
   </div>

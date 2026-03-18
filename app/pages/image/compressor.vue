@@ -62,8 +62,7 @@ const formatSize = (bytes: number) => {
       <ImgStudio
         ref="editorRef"
         borderless
-        mode="image"
-      >
+        mode="image">
         <template #header>
           <div class="flex items-center justify-between px-4 py-3 border-b border-default bg-elevated z-10">
             <div class="flex items-center gap-3">
@@ -79,7 +78,7 @@ const formatSize = (bytes: number) => {
                 </p>
               </div>
             </div>
-            
+
             <div class="flex gap-2">
               <UButton
                 label="Download Optimized Image"
@@ -90,7 +89,7 @@ const formatSize = (bytes: number) => {
                 @click="downloadImage" />
             </div>
           </div>
-          
+
           <!-- Loading overlay for the whole canvas area when compressing -->
           <div
             v-if="isCompressing"
@@ -104,13 +103,12 @@ const formatSize = (bytes: number) => {
 
         <template #default>
           <div class="p-4 space-y-6 pb-20">
-            
             <div class="space-y-4">
               <h3 class="font-bold text-xs uppercase tracking-widest text-muted flex items-center gap-2 px-1">
                 <UIcon name="i-lucide-settings-2" />
                 Compression &amp; Format
               </h3>
-              
+
               <div class="space-y-2 px-1">
                 <div class="flex justify-between text-[11px] font-semibold text-muted">
                   <span>Quality</span>
@@ -124,7 +122,9 @@ const formatSize = (bytes: number) => {
               </div>
 
               <div class="space-y-2 pt-2 px-1">
-                <div class="text-[11px] font-semibold text-muted">Output Format</div>
+                <div class="text-[11px] font-semibold text-muted">
+                  Output Format
+                </div>
                 <USelect
                   v-model="format"
                   :items="[
@@ -145,7 +145,7 @@ const formatSize = (bytes: number) => {
                 <UIcon name="i-lucide-bar-chart-2" />
                 Results
               </h3>
-              
+
               <div class="bg-elevated border border-default p-4 rounded-xl space-y-4">
                 <div class="space-y-2">
                   <div class="flex justify-between text-xs">
@@ -157,7 +157,7 @@ const formatSize = (bytes: number) => {
                     <span class="font-bold text-primary">{{ formatSize(compressedSize) }}</span>
                   </div>
                 </div>
-                
+
                 <div class="space-y-1">
                   <div class="h-2 w-full bg-muted rounded-full overflow-hidden">
                     <div
@@ -172,7 +172,6 @@ const formatSize = (bytes: number) => {
                 </div>
               </div>
             </div>
-            
           </div>
         </template>
       </ImgStudio>

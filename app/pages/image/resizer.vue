@@ -25,7 +25,7 @@ const {
 } = useImageResize()
 
 // Initialize source image when the user uploads one
-watch(() => editorRef.value?.sourceFile, (file) => {
+watch(() => editorRef.value?.sourceFile, file => {
   if (file && editorRef.value?.imageRef) {
     setSource(editorRef.value.imageRef)
   }
@@ -43,7 +43,8 @@ const applyWidth = () => {
   const val = Number(localWidth.value)
   if (val > 0 && val !== newWidth.value) {
     updateWidth(val)
-  } else {
+  }
+  else {
     localWidth.value = newWidth.value
   }
 }
@@ -52,7 +53,8 @@ const applyHeight = () => {
   const val = Number(localHeight.value)
   if (val > 0 && val !== newHeight.value) {
     updateHeight(val)
-  } else {
+  }
+  else {
     localHeight.value = newHeight.value
   }
 }
@@ -86,7 +88,6 @@ const downloadResult = async () => {
   <div class="h-[calc(100vh-var(--header-top-height,64px))] w-full flex flex-col bg-background relative">
     <ClientOnly>
       <ImgStudio ref="editorRef" borderless>
-        
         <template #header>
           <div class="flex items-center justify-between px-4 py-3 border-b border-default bg-elevated z-10">
             <div class="flex items-center gap-3">
@@ -94,11 +95,15 @@ const downloadResult = async () => {
                 <UIcon name="i-lucide-scaling" class="size-5" />
               </div>
               <div>
-                <h1 class="font-bold tracking-tight text-sm">Image Resizer</h1>
-                <p class="text-[10px] text-muted">Scale images to custom dimensions or presets.</p>
+                <h1 class="font-bold tracking-tight text-sm">
+                  Image Resizer
+                </h1>
+                <p class="text-[10px] text-muted">
+                  Scale images to custom dimensions or presets.
+                </p>
               </div>
             </div>
-            
+
             <div class="flex gap-2">
               <UButton
                 label="Download Resized Image"
@@ -112,7 +117,6 @@ const downloadResult = async () => {
 
         <template #default>
           <div class="p-4 space-y-6 pb-20 max-h-full overflow-y-auto custom-scrollbar">
-            
             <!-- Resize Mode -->
             <div class="space-y-4">
               <h3 class="font-bold text-xs uppercase tracking-widest text-muted flex items-center gap-2 px-1">
@@ -140,7 +144,7 @@ const downloadResult = async () => {
                 <UIcon name="i-lucide-ruler" />
                 Dimensions
               </h3>
-              
+
               <div class="bg-elevated border border-default rounded-xl p-4 space-y-4">
                 <div class="grid grid-cols-2 gap-4">
                   <UFormField label="Width (px)" class="text-xs">
@@ -162,11 +166,11 @@ const downloadResult = async () => {
                       @keydown.enter="applyHeight" />
                   </UFormField>
                 </div>
-                
+
                 <div class="pt-2">
-                  <UCheckbox 
-                    v-model="maintainAspectRatio" 
-                    label="Maintain aspect ratio" 
+                  <UCheckbox
+                    v-model="maintainAspectRatio"
+                    label="Maintain aspect ratio"
                     class="text-sm font-medium" />
                 </div>
               </div>
@@ -178,7 +182,7 @@ const downloadResult = async () => {
                 <UIcon name="i-lucide-percent" />
                 Scale ({{ percentage }}%)
               </h3>
-              
+
               <div class="bg-elevated border border-default rounded-xl p-5">
                 <USlider
                   :model-value="percentage"
@@ -200,7 +204,7 @@ const downloadResult = async () => {
                 <UIcon name="i-lucide-layout-template" />
                 Presets
               </h3>
-              
+
               <div class="grid grid-cols-1 gap-2">
                 <UButton
                   v-for="preset in presets"
@@ -228,7 +232,7 @@ const downloadResult = async () => {
                 <UIcon name="i-lucide-scroll-text" />
                 Summary
               </h3>
-            
+
               <div class="bg-elevated border border-default p-4 rounded-xl space-y-3">
                 <div class="flex justify-between items-center text-xs">
                   <span class="text-muted font-medium">Original Size</span>
@@ -242,7 +246,7 @@ const downloadResult = async () => {
                   <span class="text-muted font-medium">Estimated File Size</span>
                   <span class="font-mono font-medium text-default">{{ fileSizeEstimate }}</span>
                 </div>
-                
+
                 <div class="pt-3">
                   <UButton
                     label="Reset to Original"
@@ -255,7 +259,6 @@ const downloadResult = async () => {
                 </div>
               </div>
             </div>
-            
           </div>
         </template>
       </ImgStudio>

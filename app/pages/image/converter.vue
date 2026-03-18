@@ -14,14 +14,14 @@ const {
 } = useImageConvert()
 
 // Feed the original uploaded file into the converter
-watch(() => editorRef.value?.sourceFile, (file) => {
+watch(() => editorRef.value?.sourceFile, file => {
   if (file && editorRef.value?.imageRef) {
     setSource(editorRef.value.imageRef, file.type || 'image/jpeg')
   }
 })
 
 // Update the ImgStudio canvas live without triggering history commits
-watch(convertedImageUrl, (url) => {
+watch(convertedImageUrl, url => {
   if (url && editorRef.value) {
     editorRef.value.updateCanvas(url, true)
   }
@@ -45,9 +45,7 @@ const downloadImage = () => {
       <ImgStudio
         ref="editorRef"
         borderless
-        mode="image"
-      >
-        
+        mode="image">
         <template #header>
           <div class="flex items-center justify-between px-4 py-3 border-b border-default bg-elevated z-10">
             <div class="flex items-center gap-3">
@@ -55,11 +53,15 @@ const downloadImage = () => {
                 <UIcon name="i-lucide-refresh-ccw" class="size-5" />
               </div>
               <div>
-                <h1 class="font-bold tracking-tight text-sm">Format Converter</h1>
-                <p class="text-[10px] text-muted">Convert images between PNG, JPEG, and WebP.</p>
+                <h1 class="font-bold tracking-tight text-sm">
+                  Format Converter
+                </h1>
+                <p class="text-[10px] text-muted">
+                  Convert images between PNG, JPEG, and WebP.
+                </p>
               </div>
             </div>
-            
+
             <div class="flex gap-2">
               <UButton
                 label="Download Result"
@@ -70,7 +72,7 @@ const downloadImage = () => {
                 @click="downloadImage" />
             </div>
           </div>
-          
+
           <!-- Loading overlay for the whole canvas area when converting -->
           <div
             v-if="isConverting && editorRef?.hasImage"
@@ -84,13 +86,12 @@ const downloadImage = () => {
 
         <template #default>
           <div class="p-4 space-y-6 pb-20">
-            
             <div class="space-y-4">
               <h3 class="font-bold text-xs uppercase tracking-widest text-muted flex items-center gap-2 px-1">
                 <UIcon name="i-lucide-settings-2" />
                 Convert To
               </h3>
-              
+
               <div class="space-y-2">
                 <UButton
                   v-for="format in formats"
@@ -108,9 +109,9 @@ const downloadImage = () => {
                       <span class="text-[10px] text-muted">{{ format.description }}</span>
                     </div>
                   </div>
-                  
+
                   <!-- Active indicator background -->
-                  <div 
+                  <div
                     v-if="outputFormat === format.value"
                     class="absolute inset-0 bg-primary-500/5 z-0" />
                 </UButton>
@@ -146,7 +147,6 @@ const downloadImage = () => {
                 <li><strong class="font-medium text-info-700 dark:text-info-300">WebP:</strong> Modern, ultra-efficient compression</li>
               </ul>
             </div>
-            
           </div>
         </template>
       </ImgStudio>

@@ -66,16 +66,14 @@ const resetSelection = () => {
         ref="editorRef"
         :censor="{ headless: true, state: censorState }"
         borderless
-        mode="image"
-      >
+        mode="image">
         <template #header>
           <div class="flex items-center justify-between px-4 py-3 border-b border-default bg-elevated z-10 w-full relative">
             <div class="flex items-center gap-3">
               <div class="p-2 border border-primary/20 bg-primary/10 rounded-lg text-primary">
                 <UIcon
                   name="i-lucide-shield-alert"
-                  class="size-5"
-                />
+                  class="size-5" />
               </div>
               <div>
                 <h1 class="font-bold tracking-tight text-sm">
@@ -95,8 +93,7 @@ const resetSelection = () => {
                 color="neutral"
                 size="sm"
                 :disabled="!editorRef?.canUndo"
-                @click="editorRef?.undo()"
-              />
+                @click="editorRef?.undo()" />
               <UButton
                 label="Redo"
                 icon="i-lucide-redo"
@@ -104,15 +101,13 @@ const resetSelection = () => {
                 color="neutral"
                 size="sm"
                 :disabled="!editorRef?.canRedo"
-                @click="editorRef?.redo()"
-              />
+                @click="editorRef?.redo()" />
               <UButton
                 label="Export"
                 icon="i-lucide-download"
                 color="primary"
                 size="sm"
-                @click="downloadResult"
-              />
+                @click="downloadResult" />
             </div>
           </div>
         </template>
@@ -135,16 +130,14 @@ const resetSelection = () => {
                   :variant="mode === 'blur' ? 'solid' : 'subtle'"
                   size="sm"
                   block
-                  @click="mode = 'blur'"
-                />
+                  @click="mode = 'blur'" />
                 <UButton
                   label="Pixelate"
                   :color="mode === 'pixelate' ? 'primary' : 'neutral'"
                   :variant="mode === 'pixelate' ? 'solid' : 'subtle'"
                   size="sm"
                   block
-                  @click="mode = 'pixelate'"
-                />
+                  @click="mode = 'pixelate'" />
               </div>
 
               <div class="space-y-4 pt-2 px-1">
@@ -156,8 +149,7 @@ const resetSelection = () => {
                     </span>
                     <USwitch
                       v-model="useArea"
-                      size="xs"
-                    />
+                      size="xs" />
                   </div>
                 </div>
 
@@ -170,8 +162,7 @@ const resetSelection = () => {
                     v-model="intensity"
                     :min="1"
                     :max="50"
-                    size="sm"
-                  />
+                    size="sm" />
                 </div>
 
                 <UButton
@@ -182,8 +173,7 @@ const resetSelection = () => {
                   color="neutral"
                   size="xs"
                   block
-                  @click="resetSelection"
-                />
+                  @click="resetSelection" />
 
                 <UButton
                   v-if="selections.length > 0 || !useArea"
@@ -192,8 +182,7 @@ const resetSelection = () => {
                   color="primary"
                   block
                   class="mt-2"
-                  @click="applyCensoring"
-                />
+                  @click="applyCensoring" />
               </div>
             </div>
 
@@ -214,8 +203,7 @@ const resetSelection = () => {
               <p class="font-bold flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-info">
                 <UIcon
                   name="i-lucide-shield-check"
-                  class="size-4"
-                />
+                  class="size-4" />
                 Secure Processing
               </p>
               <p class="leading-relaxed">

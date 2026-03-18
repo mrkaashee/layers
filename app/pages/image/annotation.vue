@@ -23,8 +23,7 @@ onMounted(() => {
       <ImgStudio
         ref="editorRef"
         borderless
-        annotate
-      >
+        annotate>
         <template #header>
           <div class="flex items-center justify-between px-4 py-3 border-b border-default bg-elevated z-10 w-full relative">
             <div class="flex items-center gap-3">
@@ -40,7 +39,7 @@ onMounted(() => {
                 </p>
               </div>
             </div>
-            
+
             <div class="flex gap-2">
               <UButton
                 label="Undo"
@@ -97,15 +96,13 @@ onMounted(() => {
                 Press
                 <UKbd
                   size="sm"
-                  class="font-mono"
-                >
+                  class="font-mono">
                   Del
                 </UKbd>
                 or
                 <UKbd
                   size="sm"
-                  class="font-mono"
-                >
+                  class="font-mono">
                   Backspace
                 </UKbd>
                 to remove the selected annotation.
@@ -113,7 +110,6 @@ onMounted(() => {
             </div>
           </div>
         </template>
-        
       </ImgStudio>
     </ClientOnly>
   </div>

@@ -50,7 +50,6 @@ watch(() => editorRef.value?.hasImage, loaded => {
         ref="editorRef"
         :cropper="true"
         borderless>
-        
         <template #header>
           <div class="flex items-center justify-between px-4 py-3 border-b border-default bg-elevated z-10">
             <div class="flex items-center gap-3">
@@ -58,11 +57,15 @@ watch(() => editorRef.value?.hasImage, loaded => {
                 <UIcon name="i-lucide-crop" class="size-5" />
               </div>
               <div>
-                <h1 class="font-bold tracking-tight text-sm">Image Cropper</h1>
-                <p class="text-[10px] text-muted">Crop your images to any aspect ratio with precision.</p>
+                <h1 class="font-bold tracking-tight text-sm">
+                  Image Cropper
+                </h1>
+                <p class="text-[10px] text-muted">
+                  Crop your images to any aspect ratio with precision.
+                </p>
               </div>
             </div>
-            
+
             <div class="flex gap-2">
               <UButton
                 label="Undo"
@@ -97,13 +100,13 @@ watch(() => editorRef.value?.hasImage, loaded => {
                 <UIcon name="i-lucide-settings-2" />
                 Aspect Ratio
               </h3>
-              
+
               <USelect
                 v-model="selectedRatio"
                 :items="ratioOptions"
                 size="md"
                 class="w-full" />
-                
+
               <UButton
                 label="Apply Crop"
                 icon="i-lucide-check"
@@ -133,7 +136,7 @@ watch(() => editorRef.value?.hasImage, loaded => {
             </div>
           </div>
         </template>
-        
+
         <template #default>
           <!-- Hidden default sidebar to favor our full control in the cropper slot -->
           <div class="hidden" />
