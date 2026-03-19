@@ -960,21 +960,21 @@ const handleKeyShortcuts = (e: KeyboardEvent) => {
   }
 
   // Zooming: + / =
-  if (e.key === '+' || e.key === '=') {
+  if (zoomCfg.value && (e.key === '+' || e.key === '=')) {
     e.preventDefault()
     zoomIn()
     return
   }
 
   // Zooming: - / _
-  if (e.key === '-' || e.key === '_') {
+  if (zoomCfg.value && (e.key === '-' || e.key === '_')) {
     e.preventDefault()
     zoomOut()
     return
   }
 
   // Reset Zoom: 0
-  if (e.key === '0') {
+  if (zoomCfg.value && e.key === '0') {
     e.preventDefault()
     fitToScreen()
     return
@@ -1208,7 +1208,7 @@ defineExpose({
         <div
           v-if="fixedStencil"
           ref="fixedOverlayRef"
-          :class="resUI.viewport()" />
+          class="absolute inset-0 pointer-events-none" />
 
         <!-- Empty state: Upload dropzone -->
         <div
@@ -1344,8 +1344,10 @@ defineExpose({
            whenever the primary slot container (the sidebar) is hidden.
            Using visibility: hidden instead of display: none ensures that
            children (like stencils) get correct layout dimensions for math. -->
-      <div v-if="fixedStencil || !hasImage" class="invisible absolute -z-10 pointer-events-none">
+      <div v-if="fixedStencil || !hasImage" class="opacity-0 absolute -z-10 pointer-events-none">
         <slot :editor="editorAPI" />
+        <CircleStencil v-if="fixedStencil && stencilCfg?.type === 'circle'" v-bind="stencilCfg" />
+        <RectangleStencil v-else-if="fixedStencil" v-bind="stencilCfg" />
       </div>
 
       <!-- Tools Sidebar — only in normal (non-fixedStencil) editor, hidden if toolbar.hide = true -->

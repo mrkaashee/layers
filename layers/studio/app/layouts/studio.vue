@@ -2,14 +2,14 @@
 const route = useRoute()
 
 const { data: navigation } = await useAsyncData('navigation', () => queryCollectionNavigation('content'))
-console.log('navigation', navigation.value)
+// console.log('navigation', navigation.value)
 
 const rootNavigation = computed(() =>
   navigation.value
     ?.find(ni => ni.path.startsWith('/studio'))
     ?.children?.filter(ni => ni.path != '/studio')
 )
-console.log('rootNavigation', rootNavigation.value)
+// console.log('rootNavigation', rootNavigation.value)
 </script>
 
 <template>

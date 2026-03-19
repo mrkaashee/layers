@@ -103,7 +103,7 @@ const resolvedProps = computed(() => {
 </script>
 
 <template>
-  <div class="studio-view w-full">
+  <div class="studio-view w-full h-full min-w-0 overflow-hidden">
     <!-- Tools Grid -->
     <div v-if="name === 'grid'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 py-6">
       <UCard v-for="tool in (tools || imageTools)" :key="tool.label" class="hover:ring-2 hover:ring-primary-500/50 transition-all cursor-pointer" @click="navigateTo(tool.to)">
@@ -140,8 +140,8 @@ const resolvedProps = computed(() => {
     </div>
 
     <!-- Actual Tool (ImgStudio) -->
-    <div v-else class="h-160 border border-muted rounded-xl overflow-hidden shadow-2xl bg-black/5">
-      <ImgStudio v-bind="{ ...resolvedProps, ...$attrs }" />
+    <div v-else class="relative w-full aspect-square border border-muted rounded-xl overflow-hidden shadow-2xl bg-black/5">
+      <ImgStudio v-bind="{ ...resolvedProps, ...$attrs }" class="absolute inset-0 w-full h-full" />
     </div>
   </div>
 </template>
