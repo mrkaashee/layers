@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 const { tools } = useToolsList()
+const { data } = await useAsyncData(() => queryCollection('content').path('/').first())
 
 const categories = computed(() => {
   const map = new Map<string, typeof tools>()
@@ -30,6 +31,7 @@ const statusConfig = {
 <template>
   <UMain>
     <UContainer class="py-10 space-y-12">
+      <ContentRenderer v-if="data" :value="data" />
       <div class="flex flex-wrap justify-center gap-4">
         <UButton
           label="All"
