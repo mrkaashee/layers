@@ -139,7 +139,7 @@ function initLayout() {
 
   // Fit image into container
   const isFixed = config.value.fixed
-  const padding = isFixed ? 0 : 16
+  const padding = 16
 
   const imgW = imgRef.value.naturalWidth
   const imgH = imgRef.value.naturalHeight
@@ -152,8 +152,10 @@ function initLayout() {
     cw = diameter
     ch = diameter
 
-    // Scale image so minimum side covers the diameter perfectly
-    scale = Math.max(diameter / imgW, diameter / imgH)
+    // Scale image to contain it within the workspace, allowing empty space
+    const maxWidth = width - padding * 2
+    const maxHeight = height - padding * 2
+    scale = Math.min(maxWidth / imgW, maxHeight / imgH)
   }
   else {
     // Normal: fit image into container
@@ -172,8 +174,9 @@ function initLayout() {
   imgState.scale = scale
   imgState.w = imgW * scale
   imgState.h = imgH * scale
-  imgState.x = cropState.x + (cropState.w - imgState.w) / 2
-  imgState.y = cropState.y + (cropState.h - imgState.h) / 2
+  // Always center the image on the full canvas (not just inside crop box)
+  imgState.x = (width - imgState.w) / 2
+  imgState.y = (height - imgState.h) / 2
 
   applyAspect()
   draw()
@@ -414,22 +417,25 @@ function clampCropBox() {
     cropState.h = minSize
   }
 
-  // Constrain to image bounds
-  if (cropState.x < imgState.x) {
-    if (dragAction !== 'move') cropState.w -= (imgState.x - cropState.x)
-    cropState.x = imgState.x
-  }
-  if (cropState.y < imgState.y) {
-    if (dragAction !== 'move') cropState.h -= (imgState.y - cropState.y)
-    cropState.y = imgState.y
-  }
-  if (cropState.x + cropState.w > imgState.x + imgState.w) {
-    if (dragAction !== 'move') cropState.w = imgState.x + imgState.w - cropState.x
-    else cropState.x = imgState.x + imgState.w - cropState.w
-  }
-  if (cropState.y + cropState.h > imgState.y + imgState.h) {
-    if (dragAction !== 'move') cropState.h = imgState.y + imgState.h - cropState.y
-    else cropState.y = imgState.y + imgState.h - cropState.h
+  // Constrain to image bounds only in non-fixed mode
+  // In fixed mode the crop box is fixed-size and floats above the image
+  if (!config.value.fixed) {
+    if (cropState.x < imgState.x) {
+      if (dragAction !== 'move') cropState.w -= (imgState.x - cropState.x)
+      cropState.x = imgState.x
+    }
+    if (cropState.y < imgState.y) {
+      if (dragAction !== 'move') cropState.h -= (imgState.y - cropState.y)
+      cropState.y = imgState.y
+    }
+    if (cropState.x + cropState.w > imgState.x + imgState.w) {
+      if (dragAction !== 'move') cropState.w = imgState.x + imgState.w - cropState.x
+      else cropState.x = imgState.x + imgState.w - cropState.w
+    }
+    if (cropState.y + cropState.h > imgState.y + imgState.h) {
+      if (dragAction !== 'move') cropState.h = imgState.y + imgState.h - cropState.y
+      else cropState.y = imgState.y + imgState.h - cropState.h
+    }
   }
 
   // Restore aspect ratio if squished by boundaries during a resize
@@ -537,11 +543,12 @@ function onWheel(e: WheelEvent) {
   const oldScale = imgState.scale
   let newScale = oldScale + oldScale * delta
 
-  // Constrain zoom out so image covers the crop box
-  const minScaleX = cropState.w / imgRef.value.naturalWidth
-  const minScaleY = cropState.h / imgRef.value.naturalHeight
-  const minScale = Math.max(minScaleX, minScaleY, zc.min ?? 0)
-  const maxScale = zc.max ?? (minScale * 10)
+  // Constrain zoom out, allowing empty space (contain behavior)
+  const minScaleX = Math.max(0, cropState.w / imgRef.value.naturalWidth)
+  const minScaleY = Math.max(0, cropState.h / imgRef.value.naturalHeight)
+  const baseScale = Math.min(minScaleX, minScaleY)
+  const minScale = Math.max(0.01, zc.min ?? baseScale)
+  const maxScale = zc.max ?? (baseScale * 10)
 
   if (newScale < minScale) newScale = minScale
   if (newScale > maxScale) newScale = maxScale
@@ -596,8 +603,14 @@ function apply() {
     outCtx.clip()
   }
 
-  // Draw scaled to output size
-  outCtx.drawImage(imgRef.value, px, py, pw, ph, 0, 0, outW, outH)
+  // Draw mapping exactly as it sits relative to the crop box
+  const outputScaleX = outW / pw
+  const outputScaleY = outH / ph
+
+  outCtx.save()
+  outCtx.scale(outputScaleX, outputScaleY)
+  outCtx.drawImage(imgRef.value, -px, -py)
+  outCtx.restore()
 
   emit('apply', {
     x: px,
@@ -634,7 +647,7 @@ defineExpose({
     <!-- Canvas Area -->
     <div
       ref="containerRef"
-      class="flex-1 relative overflow-hidden select-none"
+      class="flex-1 w-full h-full relative overflow-hidden select-none"
       :style="{ touchAction: isDragging ? 'none' : 'pan-y' }">
       <canvas
         ref="canvasRef"
@@ -647,12 +660,21 @@ defineExpose({
     </div>
 
     <!-- Action Footer -->
-    <div v-if="!hideActions" class="flex justify-end gap-3 px-4 py-3 border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
-      <UButton label="Cancel" color="neutral" variant="soft" icon="i-lucide-x" @click="cancel" />
-      <div class="flex-1 text-center text-sm text-gray-500 font-medium">
-        {{ config.shape === 'round' ? 'Circular Crop' : 'Rectangular Crop' }}
-      </div>
-      <UButton label="Apply Crop" color="primary" variant="solid" icon="i-lucide-check" @click="apply" />
+    <div v-if="!hideActions" class="absolute bottom-0 left-0 right-0 z-20 flex justify-center gap-3 px-4 py-3 pointer-events-none *:pointer-events-auto">
+      <UButton
+        label="Cancel"
+        color="neutral"
+        variant="solid"
+        class="shadow-md"
+        icon="i-lucide-x"
+        @click="cancel" />
+      <UButton
+        label="Apply Crop"
+        color="primary"
+        variant="solid"
+        class="shadow-md"
+        icon="i-lucide-check"
+        @click="apply" />
     </div>
   </div>
 </template>
