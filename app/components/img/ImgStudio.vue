@@ -216,7 +216,6 @@ defineExpose({
   background: var(--ui-bg);
   border: 1px solid var(--ui-border);
   border-radius: var(--radius-xl);
-  overflow: hidden;
   position: relative;
 }
 

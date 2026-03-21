@@ -73,9 +73,8 @@ let ctx: CanvasRenderingContext2D | null = null
 const imgState = { x: 0, y: 0, w: 0, h: 0, scale: 1 } // Image bounds in canvas
 const cropState = { x: 0, y: 0, w: 0, h: 0 } // Crop box bounds in canvas
 
-// Drag state
-let isDragging = false
-let dragAction = '' // 'tl', 'tr', 'bl', 'br', 'move', ''
+const isDragging = ref(false)
+let dragAction = '' // 'tl', 'tr', 'bl', 'br', 'move', 'tr_round', ''
 let startMouseX = 0
 let startMouseY = 0
 let startCrop = { x: 0, y: 0, w: 0, h: 0 }
@@ -83,17 +82,30 @@ let startImg = { x: 0, y: 0, w: 0, h: 0 }
 
 const hoverCursor = ref('default')
 const HANDLE_SIZE = 12
+let resizeObserver: ResizeObserver | null = null
 
 // --- Initialization ---
 onMounted(async () => {
-  if (!containerRef.value || !canvasRef.value) return
-  ctx = canvasRef.value.getContext('2d')
-  window.addEventListener('resize', handleResize)
+  if (canvasRef.value) {
+    ctx = canvasRef.value.getContext('2d')
+    canvasRef.value.addEventListener('wheel', onWheel, { passive: false })
+  }
+  if (containerRef.value) {
+    resizeObserver = new ResizeObserver(() => {
+      initLayout()
+    })
+    resizeObserver.observe(containerRef.value)
+  }
+  window.addEventListener('resize', initLayout)
   await loadImage()
 })
 
 onUnmounted(() => {
-  window.removeEventListener('resize', handleResize)
+  if (resizeObserver) resizeObserver.disconnect()
+  window.removeEventListener('resize', initLayout)
+  if (canvasRef.value) {
+    canvasRef.value.removeEventListener('wheel', onWheel)
+  }
 })
 
 async function loadImage() {
@@ -111,7 +123,10 @@ async function loadImage() {
 
 function initLayout() {
   if (!containerRef.value || !canvasRef.value || !imgRef.value) return
+  if (imgRef.value.naturalWidth === 0 || imgRef.value.naturalHeight === 0) return
+
   const { width, height } = containerRef.value.getBoundingClientRect()
+  if (width === 0 || height === 0) return // Wait for layout to settle (e.g. Vue transitions)
 
   // High DPI canvas
   const dpr = window.devicePixelRatio || 1
@@ -132,7 +147,7 @@ function initLayout() {
 
   if (isFixed) {
     // Circle touches sides exactly, bounded only by canvas padding
-    const diameter = Math.min(width, height) - padding * 2
+    const diameter = Math.max(0, Math.min(width, height) - padding * 2)
     cw = diameter
     ch = diameter
 
@@ -161,10 +176,6 @@ function initLayout() {
 
   applyAspect()
   draw()
-}
-
-function handleResize() {
-  initLayout()
 }
 
 // --- Aspect Logic ---
@@ -216,8 +227,9 @@ function draw() {
   ctx.rect(0, 0, w, h) // outer boundary
 
   if (config.value.shape === 'round') {
+    const radius = Math.max(0, cropState.w / 2)
     // Create a hole by drawing in opposite direction
-    ctx.arc(cropState.x + cropState.w / 2, cropState.y + cropState.h / 2, cropState.w / 2, 0, Math.PI * 2, true)
+    ctx.arc(cropState.x + radius, cropState.y + radius, radius, 0, Math.PI * 2, true)
   }
   else {
     // Create a hole by drawing a rect in opposite direction
@@ -230,8 +242,9 @@ function draw() {
   ctx.strokeStyle = '#fff'
   ctx.lineWidth = 1
   if (config.value.shape === 'round') {
+    const radius = Math.max(0, cropState.w / 2)
     ctx.beginPath()
-    ctx.arc(cropState.x + cropState.w / 2, cropState.y + cropState.h / 2, cropState.w / 2, 0, Math.PI * 2)
+    ctx.arc(cropState.x + radius, cropState.y + radius, radius, 0, Math.PI * 2)
     ctx.stroke()
   }
   else {
@@ -329,7 +342,7 @@ function getHitAction(x: number, y: number) {
 }
 
 function onHoverMove(e: MouseEvent | TouchEvent) {
-  if (isDragging) return
+  if (isDragging.value) return
   if (config.value.fixed) {
     hoverCursor.value = 'move'
     return
@@ -353,11 +366,13 @@ function onHoverMove(e: MouseEvent | TouchEvent) {
 }
 
 function onPointerDown(e: MouseEvent | TouchEvent) {
+  if (!imgRef.value) return
+  isDragging.value = true
+
   const { x, y } = getMousePos(e)
   dragAction = getHitAction(x, y)
   if (!dragAction) return
 
-  isDragging = true
   startMouseX = x
   startMouseY = y
   startCrop = { ...cropState }
@@ -437,7 +452,7 @@ function clampCropBox() {
 }
 
 function onPointerMove(e: MouseEvent | TouchEvent) {
-  if (!isDragging) return
+  if (!isDragging.value) return
   e.preventDefault()
 
   const { x, y } = getMousePos(e)
@@ -500,7 +515,7 @@ function onPointerMove(e: MouseEvent | TouchEvent) {
 }
 
 function onPointerUp(_e: MouseEvent | TouchEvent) {
-  isDragging = false
+  isDragging.value = false
   if (typeof window !== 'undefined') {
     window.removeEventListener('mousemove', onPointerMove)
     window.removeEventListener('touchmove', onPointerMove)
@@ -615,7 +630,10 @@ defineExpose({
     </div>
 
     <!-- Canvas Area -->
-    <div ref="containerRef" class="canvas-wrapper">
+    <div
+      ref="containerRef"
+      class="canvas-wrapper"
+      :style="{ touchAction: isDragging ? 'none' : 'pan-y' }">
       <canvas
         ref="canvasRef"
         class="cropper-canvas"
@@ -623,8 +641,7 @@ defineExpose({
         :style="{ cursor: hoverCursor }"
         @mousemove="onHoverMove"
         @mousedown="onPointerDown"
-        @touchstart.passive="onPointerDown"
-        @wheel.prevent="onWheel" />
+        @touchstart.passive="onPointerDown" />
     </div>
 
     <!-- Action Footer -->
@@ -644,8 +661,6 @@ defineExpose({
   flex-direction: column;
   width: 100%;
   height: 100%;
-  position: relative;
-  background: var(--ui-bg);
 }
 
 .cropper-presets {
@@ -662,10 +677,9 @@ defineExpose({
   position: relative;
   overflow: hidden;
   user-select: none;
-  touch-action: none;
 }
 
-.crop-canvas {
+.cropper-canvas {
   position: absolute;
   top: 0;
   left: 0;

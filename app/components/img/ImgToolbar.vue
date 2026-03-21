@@ -71,7 +71,7 @@ function onToolClick(tool: StudioTool) {
         @click="onToolClick('reset')" />
     </template>
 
-    <UDivider v-if="config.items && config.items.length > 0" class="my-2" />
+    <USeparator v-if="config.items && config.items.length > 0" class="my-2" />
 
     <!-- Slot for parent to inject extra tools -->
     <slot />
