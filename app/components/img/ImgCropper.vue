@@ -619,9 +619,9 @@ defineExpose({
 </script>
 
 <template>
-  <div class="img-cropper">
+  <div class="flex flex-col w-full h-full">
     <!-- Optional Presets Header -->
-    <div v-if="config.presets.length > 0" class="cropper-presets">
+    <div v-if="config.presets.length > 0" class="absolute top-0 left-0 right-0 z-20 flex justify-center gap-2 px-4 py-3 overflow-x-auto pointer-events-none *:pointer-events-auto">
       <UButton
         v-for="preset in config.presets"
         :key="preset.label"
@@ -634,11 +634,11 @@ defineExpose({
     <!-- Canvas Area -->
     <div
       ref="containerRef"
-      class="canvas-wrapper"
+      class="flex-1 relative overflow-hidden select-none"
       :style="{ touchAction: isDragging ? 'none' : 'pan-y' }">
       <canvas
         ref="canvasRef"
-        class="cropper-canvas"
+        class="absolute top-0 left-0"
         :class="{ 'cursor-grabbing': hoverCursor === 'grabbing' }"
         :style="{ cursor: hoverCursor }"
         @mousemove="onHoverMove"
@@ -647,7 +647,7 @@ defineExpose({
     </div>
 
     <!-- Action Footer -->
-    <div v-if="!hideActions" class="cropper-actions">
+    <div v-if="!hideActions" class="flex justify-end gap-3 px-4 py-3 border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
       <UButton label="Cancel" color="neutral" variant="soft" icon="i-lucide-x" @click="cancel" />
       <div class="flex-1 text-center text-sm text-gray-500 font-medium">
         {{ config.shape === 'round' ? 'Circular Crop' : 'Rectangular Crop' }}
@@ -656,52 +656,3 @@ defineExpose({
     </div>
   </div>
 </template>
-
-<style scoped>
-.img-cropper {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  height: 100%;
-}
-
-.cropper-presets {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 20;
-  display: flex;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1rem;
-  overflow-x: auto;
-  pointer-events: none;
-}
-
-.cropper-presets > * {
-  pointer-events: auto;
-}
-
-.canvas-wrapper {
-  flex: 1;
-  position: relative;
-  overflow: hidden;
-  user-select: none;
-}
-
-.cropper-canvas {
-  position: absolute;
-  top: 0;
-  left: 0;
-}
-
-.cropper-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.75rem;
-  padding: 0.75rem 1rem;
-  border-top: 1px solid var(--ui-border);
-  background: var(--ui-bg-elevated);
-}
-</style>

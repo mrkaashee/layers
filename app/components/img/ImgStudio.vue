@@ -145,19 +145,17 @@ defineExpose({
 </script>
 
 <template>
-  <div class="img-studio" :class="{ 'is-disabled': disabled }">
-    <!-- 1. Selection State -->
-    <div v-if="!internalSrc" class="studio-empty">
+  <div class="flex flex-col w-full h-150 min-h-100 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl relative" :class="{ 'opacity-60 pointer-events-none': disabled }">
+    <!-- 1. Initial State: No Image -->
+    <div v-if="!internalSrc" class="flex flex-1 min-h-0 flex-col items-center justify-center p-8">
       <ImgDropZone :accept="accept" @load="onImageLoad">
-        <template #default>
-          <slot name="empty" />
-        </template>
+        <slot name="empty" />
       </ImgDropZone>
     </div>
 
     <!-- 2. Editor State -->
     <template v-else>
-      <div class="studio-layout">
+      <div class="flex flex-1 min-h-0">
         <!-- Sidebar -->
         <ImgToolbar
           v-if="normalizedToolbar.show"
@@ -170,9 +168,11 @@ defineExpose({
         </ImgToolbar>
 
         <!-- Main Viewport -->
-        <div class="studio-main">
+        <div class="flex-1 relative flex items-center justify-center overflow-hidden">
           <!-- Background checked pattern -->
-          <div class="bg-pattern" />
+          <div
+            class="absolute inset-0 opacity-20 pointer-events-none"
+            style="background-image: linear-gradient(45deg, var(--ui-border) 25%, transparent 25%), linear-gradient(-45deg, var(--ui-border) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, var(--ui-border) 75%), linear-gradient(-45deg, transparent 75%, var(--ui-border) 75%); background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, -10px 0px;" />
 
           <ImgCropper
             v-if="isCropping"
@@ -188,16 +188,16 @@ defineExpose({
 
           <!-- Standard View (Always rendered to prevent unmount flashes) -->
           <div
-            class="studio-view"
+            class="w-full h-full flex items-center justify-center relative p-4"
             :class="{ 'opacity-0 pointer-events-none': isCropping && cropperReady }">
-            <img :src="internalSrc" class="studio-img" alt="Studio Preview">
+            <img :src="internalSrc" class="max-w-full max-h-full object-contain shadow-md" alt="Studio Preview">
             <slot name="preview" :src="internalSrc" :crop="isCropping" />
           </div>
         </div>
       </div>
 
       <!-- Action Footer -->
-      <div v-if="!hideActions" class="studio-footer">
+      <div v-if="!hideActions" class="flex items-center gap-2 px-4 py-3 border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50">
         <UButton
           label="Reset Image"
           icon="i-lucide-trash-2"
@@ -211,86 +211,3 @@ defineExpose({
     </template>
   </div>
 </template>
-
-<style scoped>
-.img-studio {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  height: 600px; /* Default height */
-  min-height: 400px;
-  background: var(--ui-bg);
-  border: 1px solid var(--ui-border);
-  border-radius: var(--radius-xl);
-  position: relative;
-}
-
-.img-studio.is-disabled {
-  opacity: 0.6;
-  pointer-events: none;
-}
-
-.studio-layout {
-  display: flex;
-  flex: 1;
-  min-height: 0;
-}
-
-.studio-main {
-  flex: 1;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-}
-
-.bg-pattern {
-  position: absolute;
-  inset: 0;
-  background-image: linear-gradient(45deg, var(--ui-border) 25%, transparent 25%),
-                    linear-gradient(-45deg, var(--ui-border) 25%, transparent 25%),
-                    linear-gradient(45deg, transparent 75%, var(--ui-border) 75%),
-                    linear-gradient(-45deg, transparent 75%, var(--ui-border) 75%);
-  background-size: 20px 20px;
-  background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
-  opacity: 0.2;
-  pointer-events: none;
-}
-
-.studio-view {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  padding: 1rem;
-}
-
-.studio-img {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-}
-
-.studio-footer {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1rem;
-  border-top: 1px solid var(--ui-border);
-  background: var(--ui-bg-elevated);
-}
-
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.2s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-</style>
