@@ -1,13 +1,13 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
-import type { AspectPreset, CropResult } from '~/components/img/types'
+import type { AspectPreset, CropResult, StudioTool } from '~/components/img/types'
 import ImgStudio from '~/components/img/ImgStudio.vue'
 
-const activeTool2 = ref<'crop' | 'none'>('crop')
-const activeTool3 = ref<'crop' | 'none'>('crop')
-const activeTool4 = ref<'crop' | 'none'>('crop')
-const activeTool5 = ref<'crop' | 'none'>('crop')
-const activeTool6 = ref<'crop' | 'none'>('crop')
+const activeTool2 = ref<StudioTool>('crop')
+const activeTool3 = ref<StudioTool>('crop')
+const activeTool4 = ref<StudioTool>('crop')
+const activeTool5 = ref<StudioTool>('crop')
+const activeTool6 = ref<StudioTool>('crop')
 
 const src1 = ref('https://picsum.photos/id/237/800/600')
 const src2 = ref('https://picsum.photos/id/1015/800/600')
@@ -73,6 +73,7 @@ function onReset() {
           <ImgStudio
             v-model:src="src1"
             :crop="{ presets }"
+            :toolbar="{ show: true, items: ['crop'] }"
             @crop:apply="onCropApply"
             @crop:cancel="onCropCancel"
             @reset="onReset">
@@ -103,6 +104,7 @@ function onReset() {
             v-model:src="src2"
             v-model:active-tool="activeTool2"
             :crop="{ aspect: 16 / 9 }"
+            :toolbar="{ show: true, items: ['crop'] }"
             @crop:apply="onCropApply"
             @crop:cancel="onCropCancel"
             @reset="onReset">
@@ -126,6 +128,7 @@ function onReset() {
             v-model:src="src3"
             v-model:active-tool="activeTool3"
             :crop="{ shape: 'round' }"
+            :toolbar="{ show: true, items: ['crop'] }"
             @crop:apply="onCropApply"
             @crop:cancel="onCropCancel"
             @reset="onReset">
@@ -149,6 +152,7 @@ function onReset() {
             v-model:src="src4"
             v-model:active-tool="activeTool4"
             :crop="{ shape: 'round', fixed: true }"
+            :toolbar="{ show: true, items: ['crop'] }"
             @crop:apply="onCropApply"
             @crop:cancel="onCropCancel"
             @reset="onReset">
@@ -171,6 +175,7 @@ function onReset() {
             v-model:src="src6"
             v-model:active-tool="activeTool6"
             :crop="{ aspect: 1, shape: 'rect', fixed: true }"
+            :toolbar="{ show: true, items: ['crop'] }"
             @crop:apply="onCropApply"
             @crop:cancel="onCropCancel"
             @reset="onReset" />
@@ -201,8 +206,8 @@ function onReset() {
                   v-model:src="tempAvatarSrc"
                   v-model:active-tool="activeTool5"
                   class="h-auto! min-h-0! aspect-square w-full"
-                  :crop="{ shape: 'round', fixed: true, hideActions: true, size: 512 }"
-                  hide-toolbar
+                  :crop="{ shape: 'round', fixed: true, size: 512 }"
+                  :toolbar="{ show: false, items: ['crop', 'apply', 'cancel', 'reset'] }"
                   @crop:apply="onAvatarCropApply"
                   @crop:cancel="isAvatarModalOpen = false"
                   @reset="onReset" />

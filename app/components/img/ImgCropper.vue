@@ -5,6 +5,7 @@ import type { CropResult, CropConfig } from './types'
 const props = defineProps<{
   src: string
   crop?: CropConfig
+  hideActions?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -13,21 +14,51 @@ const emit = defineEmits<{
 }>()
 
 const config = computed(() => ({
-  enabled: props.crop?.enabled ?? true,
   aspect: props.crop?.aspect ?? null,
   presets: props.crop?.presets ?? [],
   shape: props.crop?.shape ?? 'rect',
   fixed: props.crop?.fixed ?? false,
-  size: props.crop?.size,
-  hideActions: props.crop?.hideActions ?? false
+  size: props.crop?.size
 }))
 
-const activeAspect = ref<number | null>(config.value.shape === 'round' ? 1 : config.value.aspect)
+/**
+ * Parses aspect ratio values.
+ * Supports:
+ * - Tailwind-like strings: 'aspect-square' (1), 'aspect-video' (16/9), 'aspect-auto' (null)
+ * - Ratio strings: '3/2' (1.5), '16:9' (1.777), '1' (1)
+ * - Raw numbers
+ * - null/undefined
+ */
+function parseAspect(val: string | number | null | undefined): number | null {
+  if (val === null || val === undefined || val === 'aspect-auto' || val === 'auto') return null
+  if (typeof val === 'number') return val
+
+  const v = val.trim().toLowerCase()
+  if (v === 'aspect-square' || v === 'square' || v === '1' || v === '1/1' || v === '1:1') return 1
+  if (v === 'aspect-video' || v === 'video') return 16 / 9
+
+  if (v.includes('/') || v.includes(':')) {
+    const delimiter = v.includes('/') ? '/' : ':'
+    const parts = v.split(delimiter)
+    if (parts.length === 2) {
+      const w = Number(parts[0])
+      const h = Number(parts[1])
+      if (!isNaN(w) && !isNaN(h) && h !== 0) return w / h
+    }
+  }
+
+  const num = Number(v)
+  return isNaN(num) ? null : num
+}
+
+const activeAspect = ref<number | null>(
+  config.value.shape === 'round' ? 1 : parseAspect(config.value.aspect)
+)
 
 // Apply aspect from presets if prop changes
 watch(() => config.value.aspect, val => {
   if (config.value.shape === 'round') return // always 1:1 for round
-  activeAspect.value = val
+  activeAspect.value = parseAspect(val)
   applyAspect()
 })
 
@@ -159,8 +190,8 @@ function applyAspect() {
   draw()
 }
 
-function setAspect(val: number | null) {
-  activeAspect.value = val
+function setAspect(val: string | number | null) {
+  activeAspect.value = parseAspect(val)
   applyAspect()
 }
 
@@ -607,14 +638,14 @@ defineExpose({
 </script>
 
 <template>
-  <div v-if="config.enabled" class="img-cropper">
+  <div class="img-cropper">
     <!-- Optional Presets Header -->
     <div v-if="config.presets.length > 0" class="cropper-presets">
       <UButton
         v-for="preset in config.presets"
         :key="preset.label"
         :label="preset.label"
-        :variant="activeAspect === preset.value ? 'solid' : 'soft'"
+        :variant="activeAspect === parseAspect(preset.value) ? 'solid' : 'soft'"
         size="xs"
         @click="setAspect(preset.value)" />
     </div>
@@ -633,7 +664,7 @@ defineExpose({
     </div>
 
     <!-- Action Footer -->
-    <div v-if="!config.hideActions" class="cropper-actions">
+    <div v-if="!hideActions" class="cropper-actions">
       <UButton label="Cancel" color="neutral" variant="soft" icon="i-lucide-x" @click="cancel" />
       <div class="flex-1 text-center text-sm text-gray-500 font-medium">
         {{ config.shape === 'round' ? 'Circular Crop' : 'Rectangular Crop' }}

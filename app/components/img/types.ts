@@ -13,19 +13,34 @@ export interface CropResult {
 
 export interface AspectPreset {
   label: string
-  /** Aspect ratio (width / height). null means free crop. */
-  value: number | null
+  /**
+   * Aspect ratio value (width / height).
+   * Supports literals: 'aspect-square', 'aspect-video', 'aspect-auto'
+   * Or custom ratios: '3/2', '16:9', '1'
+   * Or raw numbers. null means free crop.
+   */
+  value: 'aspect-square' | 'aspect-video' | 'aspect-auto' | (string & {}) | number | null
 }
 
 export interface CropConfig {
-  enabled?: boolean
-  aspect?: number | null
+  aspect?: 'aspect-square' | 'aspect-video' | 'aspect-auto' | (string & {}) | number | null
   presets?: AspectPreset[]
   shape?: 'rect' | 'round'
   fixed?: boolean
   size?: number
-  hideActions?: boolean
 }
 
-export type StudioTool = 'crop' | 'none'
+export interface ResizeConfig {
+  width?: number
+  height?: number
+  quality?: number // 0 to 100
+  maintainAspectRatio?: boolean
+}
+
+export interface ToolbarConfig {
+  show?: boolean
+  items?: StudioTool[]
+}
+
+export type StudioTool = 'crop' | 'apply' | 'cancel' | 'reset' | 'none'
 export type CropShape = 'rect' | 'round'

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { ref, watch, computed } from 'vue'
-import type { CropConfig, CropResult, StudioTool } from './types'
+import type { CropConfig, CropResult, StudioTool, ToolbarConfig } from './types'
 import ImgDropZone from './ImgDropZone.vue'
 import ImgToolbar from './ImgToolbar.vue'
 import ImgCropper from './ImgCropper.vue'
@@ -9,13 +9,13 @@ const props = withDefaults(defineProps<{
   src?: string
   accept?: string
   crop?: boolean | CropConfig
-  hideToolbar?: boolean
+  toolbar?: boolean | ToolbarConfig
   disabled?: boolean
 }>(), {
   src: '',
   accept: 'image/*',
   crop: true,
-  hideToolbar: false,
+  toolbar: true,
   disabled: false
 })
 
@@ -36,19 +36,40 @@ watch(() => props.src, val => {
 })
 
 const normalizedCrop = computed<CropConfig>(() => {
-  if (typeof props.crop === 'boolean') {
-    return { enabled: props.crop }
-  }
-  return { enabled: true, ...props.crop }
+  if (typeof props.crop === 'boolean') return {}
+  return props.crop || {}
 })
 
-const isCropping = computed(() => activeTool.value === 'crop' && normalizedCrop.value.enabled)
+const isCropEnabled = computed(() => !!props.crop)
 
-// Sync crop tool activation state
+const normalizedToolbar = computed<ToolbarConfig>(() => {
+  const items: StudioTool[] = []
+  if (isCropEnabled.value) items.push('crop')
+
+  if (typeof props.toolbar === 'object' && props.toolbar !== null) {
+    return {
+      show: props.toolbar.show ?? false,
+      items: props.toolbar.items ?? items
+    }
+  }
+
+  return {
+    show: props.toolbar !== false,
+    items
+  }
+})
+
+const isCropping = computed(() => activeTool.value === 'crop' && isCropEnabled.value)
+
+const hideActions = computed(() => {
+  const items = normalizedToolbar.value.items || []
+  return items.includes('apply') || items.includes('cancel') || items.includes('reset')
+})
+
+// Sync tool activation state
 watch(activeTool, tool => {
-  if (tool === 'crop' && !normalizedCrop.value.enabled) {
+  if (tool === 'crop' && !isCropEnabled.value) {
     activeTool.value = 'none'
-    return
   }
 })
 
@@ -74,6 +95,24 @@ function onReset() {
   internalSrc.value = ''
   activeTool.value = 'none'
   emit('reset')
+}
+
+function onToolbarAction(action: 'apply' | 'cancel' | 'reset') {
+  if (action === 'reset') {
+    onReset()
+    return
+  }
+
+  if (action === 'apply') {
+    if (isCropping.value) {
+      applyCrop()
+    }
+  }
+  else if (action === 'cancel') {
+    if (isCropping.value) {
+      onCropCancel()
+    }
+  }
 }
 
 const cropperRef = ref<InstanceType<typeof ImgCropper>>()
@@ -108,9 +147,12 @@ defineExpose({
       <div class="studio-layout">
         <!-- Sidebar -->
         <ImgToolbar
-          v-if="!hideToolbar"
-          v-model:active-tool="activeTool"
-          :disabled="disabled">
+          v-if="normalizedToolbar.show"
+          :active-tool="activeTool"
+          :config="normalizedToolbar"
+          :disabled="disabled"
+          @update:active-tool="val => activeTool = val"
+          @action="onToolbarAction">
           <slot name="toolbar" />
         </ImgToolbar>
 
@@ -120,12 +162,12 @@ defineExpose({
           <div class="bg-pattern" />
 
           <transition name="fade" mode="out-in">
-            <!-- Cropper Mode -->
             <ImgCropper
               v-if="isCropping"
               ref="cropperRef"
               :src="internalSrc"
               :crop="normalizedCrop"
+              :hide-actions="hideActions"
               @apply="onCropApply"
               @cancel="onCropCancel" />
 
@@ -140,7 +182,7 @@ defineExpose({
       </div>
 
       <!-- Action Footer -->
-      <div v-if="!normalizedCrop.hideActions" class="studio-footer">
+      <div v-if="!hideActions" class="studio-footer">
         <UButton
           label="Reset Image"
           icon="i-lucide-trash-2"
