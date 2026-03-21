@@ -268,18 +268,16 @@ function onReset() {
 
           <UModal v-model:open="isAvatarModalOpen" title="Crop Profile Picture">
             <template #body>
-              <div class="flex-1 relative min-h-0">
-                <ImgStudio
-                  ref="avatarStudioRef"
-                  v-model:src="tempAvatarSrc"
-                  v-model:active-tool="activeTool5"
-                  class="h-auto! min-h-0! aspect-square w-full"
-                  :crop="{ shape: 'round', fixed: true, size: 512 }"
-                  :toolbar="{ show: false, items: ['crop', 'apply', 'cancel', 'reset'] }"
-                  @crop:apply="onAvatarCropApply"
-                  @crop:cancel="isAvatarModalOpen = false"
-                  @reset="onReset" />
-              </div>
+              <ImgStudio
+                ref="avatarStudioRef"
+                v-model:src="tempAvatarSrc"
+                v-model:active-tool="activeTool5"
+                class="h-auto! min-h-0! aspect-square w-full"
+                :crop="{ shape: 'round', fixed: true, size: 512 }"
+                :toolbar="{ show: false, items: ['crop', 'apply', 'cancel', 'reset'] }"
+                @crop:apply="onAvatarCropApply"
+                @crop:cancel="isAvatarModalOpen = false"
+                @reset="onReset" />
             </template>
             <template #footer>
               <div class="flex justify-end gap-3">

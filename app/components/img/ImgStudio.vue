@@ -145,69 +145,67 @@ defineExpose({
 </script>
 
 <template>
-  <div class="flex flex-col w-full h-150 min-h-100 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl relative" :class="{ 'opacity-60 pointer-events-none': disabled }">
-    <!-- 1. Initial State: No Image -->
-    <div v-if="!internalSrc" class="flex flex-1 min-h-0 flex-col items-center justify-center p-8">
-      <ImgDropZone :accept="accept" @load="onImageLoad">
-        <slot name="empty" />
-      </ImgDropZone>
-    </div>
+  <!-- <div class="flex flex-col w-full h-150 min-h-100 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl relative" :class="{ 'opacity-60 pointer-events-none': disabled }"> -->
+  <!-- 1. Initial State: No Image -->
+  <ImgDropZone v-if="!internalSrc" :accept="accept" @load="onImageLoad">
+    <slot name="empty" />
+  </ImgDropZone>
 
-    <!-- 2. Editor State -->
-    <template v-else>
-      <div class="flex flex-1 min-h-0">
-        <!-- Sidebar -->
-        <ImgToolbar
-          v-if="normalizedToolbar.show"
-          :active-tool="activeTool"
-          :config="normalizedToolbar"
-          :disabled="disabled"
-          @update:active-tool="val => activeTool = val"
-          @action="onToolbarAction">
-          <slot name="toolbar" />
-        </ImgToolbar>
+  <!-- 2. Editor State -->
+  <template v-else>
+    <div class="flex flex-1 min-h-0">
+      <!-- Sidebar -->
+      <ImgToolbar
+        v-if="normalizedToolbar.show"
+        :active-tool="activeTool"
+        :config="normalizedToolbar"
+        :disabled="disabled"
+        @update:active-tool="val => activeTool = val"
+        @action="onToolbarAction">
+        <slot name="toolbar" />
+      </ImgToolbar>
 
-        <!-- Main Viewport -->
-        <div class="flex-1 relative flex items-center justify-center overflow-hidden">
-          <!-- Background checked pattern -->
-          <div
-            class="absolute inset-0 opacity-20 pointer-events-none"
-            style="background-image: linear-gradient(45deg, var(--ui-border) 25%, transparent 25%), linear-gradient(-45deg, var(--ui-border) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, var(--ui-border) 75%), linear-gradient(-45deg, transparent 75%, var(--ui-border) 75%); background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, -10px 0px;" />
+      <!-- Main Viewport -->
+      <div class="flex-1 relative flex items-center justify-center overflow-hidden">
+        <!-- Background checked pattern -->
+        <div
+          class="absolute inset-0 opacity-20 pointer-events-none"
+          style="background-image: linear-gradient(45deg, var(--ui-border) 25%, transparent 25%), linear-gradient(-45deg, var(--ui-border) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, var(--ui-border) 75%), linear-gradient(-45deg, transparent 75%, var(--ui-border) 75%); background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, -10px 0px;" />
 
-          <ImgCropper
-            v-if="isCropping"
-            ref="cropperRef"
-            class="absolute inset-0 z-10"
-            :src="internalSrc"
-            :crop="normalizedCrop"
-            :zoom="normalizedZoom"
-            :hide-actions="hideActions"
-            @ready="cropperReady = true"
-            @apply="onCropApply"
-            @cancel="onCropCancel" />
+        <ImgCropper
+          v-if="isCropping"
+          ref="cropperRef"
+          class="absolute inset-0 z-10"
+          :src="internalSrc"
+          :crop="normalizedCrop"
+          :zoom="normalizedZoom"
+          :hide-actions="hideActions"
+          @ready="cropperReady = true"
+          @apply="onCropApply"
+          @cancel="onCropCancel" />
 
-          <!-- Standard View (Always rendered to prevent unmount flashes) -->
-          <div
-            class="w-full h-full flex items-center justify-center relative p-4"
-            :class="{ 'opacity-0 pointer-events-none': isCropping && cropperReady }">
-            <img :src="internalSrc" class="max-w-full max-h-full object-contain shadow-md" alt="Studio Preview">
-            <slot name="preview" :src="internalSrc" :crop="isCropping" />
-          </div>
+        <!-- Standard View (Always rendered to prevent unmount flashes) -->
+        <div
+          class="w-full h-full flex items-center justify-center relative p-4"
+          :class="{ 'opacity-0 pointer-events-none': isCropping && cropperReady }">
+          <img :src="internalSrc" class="max-w-full max-h-full object-contain shadow-md" alt="Studio Preview">
+          <slot name="preview" :src="internalSrc" :crop="isCropping" />
         </div>
       </div>
+    </div>
 
-      <!-- Action Footer -->
-      <div v-if="!hideActions" class="flex items-center gap-2 px-4 py-3 border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50">
-        <UButton
-          label="Reset Image"
-          icon="i-lucide-trash-2"
-          color="neutral"
-          variant="ghost"
-          @click="onReset" />
-        <div class="flex-1" />
-        <!-- Custom actions slot -->
-        <slot name="actions" />
-      </div>
-    </template>
-  </div>
+    <!-- Action Footer -->
+    <div v-if="!hideActions" class="flex items-center gap-2 px-4 py-3 border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50">
+      <UButton
+        label="Reset Image"
+        icon="i-lucide-trash-2"
+        color="neutral"
+        variant="ghost"
+        @click="onReset" />
+      <div class="flex-1" />
+      <!-- Custom actions slot -->
+      <slot name="actions" />
+    </div>
+  </template>
+  <!-- </div> -->
 </template>
