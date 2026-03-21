@@ -13,6 +13,9 @@ const props = withDefaults(defineProps<{
   cropPresets?: AspectPreset[]
   cropShape?: 'rect' | 'round'
   fixedCrop?: boolean
+  hideToolbar?: boolean
+  hideActions?: boolean
+  cropSize?: number
   disabled?: boolean
 }>(), {
   src: '',
@@ -21,7 +24,9 @@ const props = withDefaults(defineProps<{
   cropAspect: null,
   cropPresets: () => [],
   cropShape: 'rect',
-  fixedCrop: false
+  fixedCrop: false,
+  hideToolbar: false,
+  hideActions: false
 })
 
 const emit = defineEmits<{
@@ -73,6 +78,21 @@ function onReset() {
   activeTool.value = 'none'
   emit('reset')
 }
+
+const cropperRef = ref<InstanceType<typeof ImgCropper>>()
+
+function applyCrop() {
+  cropperRef.value?.apply()
+}
+
+function cancelCrop() {
+  cropperRef.value?.cancel()
+}
+
+defineExpose({
+  applyCrop,
+  cancelCrop
+})
 </script>
 
 <template>
@@ -94,6 +114,7 @@ function onReset() {
       <div class="studio-layout">
         <!-- Sidebar -->
         <ImgToolbar
+          v-if="!hideToolbar"
           v-model:active-tool="activeTool"
           :disabled="disabled">
           <slot name="toolbar" />
@@ -108,11 +129,14 @@ function onReset() {
             <!-- Cropper Mode -->
             <ImgCropper
               v-if="isCropping"
+              ref="cropperRef"
               :src="internalSrc"
               :crop-aspect="cropAspect"
               :crop-presets="cropPresets"
               :crop-shape="cropShape"
               :fixed-crop="fixedCrop"
+              :hide-actions="hideActions"
+              :crop-size="cropSize"
               @apply="onCropApply"
               @cancel="onCropCancel" />
 
@@ -127,7 +151,7 @@ function onReset() {
       </div>
 
       <!-- Action Footer -->
-      <div class="studio-footer">
+      <div v-if="!hideActions" class="studio-footer">
         <UButton
           label="Reset Image"
           icon="i-lucide-trash-2"

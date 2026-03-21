@@ -8,11 +8,14 @@ const props = withDefaults(defineProps<{
   cropPresets?: AspectPreset[]
   cropShape?: 'rect' | 'round'
   fixedCrop?: boolean
+  hideActions?: boolean
+  cropSize?: number
 }>(), {
   cropAspect: null,
   cropPresets: () => [],
   cropShape: 'rect',
-  fixedCrop: false
+  fixedCrop: false,
+  hideActions: false
 })
 
 const emit = defineEmits<{
@@ -86,34 +89,43 @@ function initLayout() {
   canvasRef.value.style.width = width + 'px'
   canvasRef.value.style.height = height + 'px'
 
-  // Fit image into container padding 20px
-  const padding = 20
-  const maxWidth = width - padding * 2
-  const maxHeight = height - padding * 2
+  // Fit image into container
+  const isFixed = props.fixedCrop
+  const padding = isFixed ? 0 : 20
+
   const imgW = imgRef.value.naturalWidth
   const imgH = imgRef.value.naturalHeight
 
-  const scale = Math.min(maxWidth / imgW, maxHeight / imgH)
-  const drawW = imgW * scale
-  const drawH = imgH * scale
-  const drawX = (width - drawW) / 2
-  const drawY = (height - drawH) / 2
+  let cw, ch, scale
 
-  imgState.x = drawX
-  imgState.y = drawY
-  imgState.w = drawW
-  imgState.h = drawH
-  imgState.scale = scale
+  if (isFixed) {
+    // Circle touches sides exactly, bounded only by canvas padding
+    const diameter = Math.min(width, height) - padding * 2
+    cw = diameter
+    ch = diameter
+    
+    // Scale image so minimum side covers the diameter perfectly
+    scale = Math.max(diameter / imgW, diameter / imgH)
+  }
+  else {
+    // Normal: fit image into container
+    const maxWidth = width - padding * 2
+    const maxHeight = height - padding * 2
+    scale = Math.min(maxWidth / imgW, maxHeight / imgH)
+    cw = (imgW * scale) * 0.8
+    ch = (imgH * scale) * 0.8
+  }
 
-  // Initial crop box
-  // For fixed crop, make it 100% of the minor dimension to touch edges
-  const isFixed = props.fixedCrop
-  const cw = isFixed ? Math.min(drawW, drawH) : drawW * 0.8
-  const ch = isFixed ? Math.min(drawW, drawH) : drawH * 0.8
-  cropState.x = drawX + (drawW - cw) / 2
-  cropState.y = drawY + (drawH - ch) / 2
   cropState.w = cw
   cropState.h = ch
+  cropState.x = (width - cw) / 2
+  cropState.y = (height - ch) / 2
+
+  imgState.scale = scale
+  imgState.w = imgW * scale
+  imgState.h = imgH * scale
+  imgState.x = cropState.x + (cropState.w - imgState.w) / 2
+  imgState.y = cropState.y + (cropState.h - imgState.h) / 2
 
   applyAspect()
   draw()
@@ -518,37 +530,46 @@ function apply() {
   const pw = cropState.w / imgState.scale
   const ph = cropState.h / imgState.scale
 
+  const outW = props.cropSize || pw
+  const outH = props.cropSize || ph
+
   const c = document.createElement('canvas')
-  c.width = pw
-  c.height = ph
+  c.width = outW
+  c.height = outH
   const outCtx = c.getContext('2d')!
 
   if (props.cropShape === 'round') {
     outCtx.beginPath()
-    outCtx.arc(pw / 2, ph / 2, pw / 2, 0, Math.PI * 2)
+    outCtx.arc(outW / 2, outH / 2, outW / 2, 0, Math.PI * 2)
     outCtx.clip()
   }
 
-  outCtx.drawImage(imgRef.value, px, py, pw, ph, 0, 0, pw, ph)
+  // Draw scaled to output size
+  outCtx.drawImage(imgRef.value, px, py, pw, ph, 0, 0, outW, outH)
 
   emit('apply', {
     x: px,
     y: py,
     width: pw,
     height: ph,
-    dataUrl: c.toDataURL()
+    dataUrl: c.toDataURL('image/png')
   })
 }
 
 function cancel() {
   emit('cancel')
 }
+
+defineExpose({
+  apply,
+  cancel
+})
 </script>
 
 <template>
-  <div class="img-cropper-container">
-    <!-- Presets Header -->
-    <div v-if="cropPresets.length" class="cropper-presets">
+  <div class="img-cropper">
+    <!-- Optional Presets Header -->
+    <div v-if="cropPresets.length > 0" class="cropper-presets">
       <UButton
         v-for="preset in cropPresets"
         :key="preset.label"
@@ -562,7 +583,8 @@ function cancel() {
     <div ref="containerRef" class="canvas-wrapper">
       <canvas
         ref="canvasRef"
-        class="crop-canvas"
+        class="cropper-canvas"
+        :class="{ 'cursor-grabbing': hoverCursor === 'grabbing' }"
         :style="{ cursor: hoverCursor }"
         @mousemove="onHoverMove"
         @mousedown="onPointerDown"
@@ -571,15 +593,18 @@ function cancel() {
     </div>
 
     <!-- Action Footer -->
-    <div class="cropper-actions">
+    <div v-if="!hideActions" class="cropper-actions">
       <UButton label="Cancel" color="neutral" variant="soft" icon="i-lucide-x" @click="cancel" />
-      <UButton label="Apply Crop" color="primary" icon="i-lucide-check" @click="apply" />
+      <div class="flex-1 text-center text-sm text-gray-500 font-medium">
+        {{ cropShape === 'round' ? 'Circular Crop' : 'Rectangular Crop' }}
+      </div>
+      <UButton label="Apply Crop" color="primary" variant="solid" icon="i-lucide-check" @click="apply" />
     </div>
   </div>
 </template>
 
 <style scoped>
-.img-cropper-container {
+.img-cropper {
   display: flex;
   flex-direction: column;
   width: 100%;
