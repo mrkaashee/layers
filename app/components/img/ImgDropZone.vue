@@ -56,7 +56,7 @@ async function onDrop(e: DragEvent) {
     const dataUrl = await readFileAsDataUrl(file)
     emit('load', dataUrl)
   }
-  catch (_e) { /* invalid file */ }
+  catch { /* invalid file */ }
 }
 
 // --- File input ---
@@ -67,7 +67,7 @@ async function onFileChange(e: Event) {
     const dataUrl = await readFileAsDataUrl(file)
     emit('load', dataUrl)
   }
-  catch (_e) { /* invalid file */ }
+  catch { /* invalid file */ }
   // Reset so same file can be re-selected
   if (fileInputRef.value) fileInputRef.value.value = ''
 }

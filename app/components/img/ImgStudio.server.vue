@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { CropConfig, StudioTool, ToolbarConfig, ZoomConfig, ExportConfig } from './types'
 
-const props = withDefaults(defineProps<{
+withDefaults(defineProps<{
   src?: string
   accept?: string
   crop?: boolean | CropConfig
@@ -18,7 +18,7 @@ const props = withDefaults(defineProps<{
   disabled: false
 })
 
-const activeTool = defineModel<StudioTool>('activeTool', { default: 'none' })
+defineModel<StudioTool>('activeTool', { default: 'none' })
 </script>
 
 <template>
