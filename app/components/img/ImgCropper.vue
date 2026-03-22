@@ -246,6 +246,10 @@ function draw() {
   ctx.restore()
 
   // 4. Draw crop border
+  ctx.save()
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.5)'
+  ctx.shadowBlur = 4
+
   ctx.strokeStyle = '#fff'
   ctx.lineWidth = 1
   if (config.value.shape === 'round') {
@@ -302,6 +306,8 @@ function draw() {
       rects.forEach(([rx, ry, rw, rh]) => ctx!.fillRect(rx, ry, rw, rh))
     }
   }
+
+  ctx.restore()
 }
 
 // --- Interaction ---
