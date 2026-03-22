@@ -129,6 +129,7 @@ const activeTool5 = ref<StudioTool>('crop')
 const activeTool6 = ref<StudioTool>('crop')
 const activeTool7 = ref<StudioTool>('crop')
 const activeTool8 = ref<StudioTool>('crop')
+const activeTool9 = ref<StudioTool>('crop')
 
 const src1 = ref('https://picsum.photos/id/237/800/600')
 const src2 = ref('https://picsum.photos/id/1015/800/600')
@@ -144,6 +145,10 @@ const avatarResult = ref('https://avatars.githubusercontent.com/u/739984?v=4')
 const tempAvatarSrc = ref('')
 const isAvatarModalOpen = ref(false)
 const avatarStudioRef = ref<InstanceType<typeof ImgStudio>>()
+
+const tempSquareSrc = ref('')
+const isSquareModalOpen = ref(false)
+const squareStudioRef = ref<InstanceType<typeof ImgStudio>>()
 
 const presets: AspectPreset[] = [
   { label: 'Free', value: null },
@@ -176,6 +181,16 @@ async function onAvatarCropApply(res: CropResult) {
   tempAvatarSrc.value = ''
 
   console.log('Source Coordinates:', { x: Math.round(res.x), y: Math.round(res.y), width: Math.round(res.width), height: Math.round(res.height) })
+}
+
+async function onSquareCropApply(_res: CropResult) {
+  console.log('Square Crop applied!')
+  if (squareStudioRef.value) {
+    const file = await squareStudioRef.value.getFile('square')
+    console.log('Extracted File:', file)
+  }
+  isSquareModalOpen.value = false
+  tempSquareSrc.value = ''
 }
 
 function onCropCancel() {
@@ -454,7 +469,7 @@ function onPlaygroundDownload() {
         </div>
 
         <!-- 5. Avatar Uploader (Modal) -->
-        <div class="space-y-4 xl:col-span-2 max-w-2xl mx-auto w-full">
+        <div class="space-y-4 max-w-2xl mx-auto w-full">
           <h2 class="text-xl font-semibold">
             5. Avatar Uploader (Modal)
           </h2>
@@ -471,7 +486,7 @@ function onPlaygroundDownload() {
                 class="h-auto! min-h-0! aspect-square w-full"
                 :crop="{ shape: 'round', fixed: true, size: 512 }"
                 :export="{ defaultFormat: 'image/webp', quality: 0.9 }"
-                :toolbar="{ show: false, items: ['crop', 'apply', 'cancel', 'reset'] }"
+                :toolbar="{ show: false, items: ['crop'] }"
                 @crop:apply="onAvatarCropApply"
                 @crop:cancel="isAvatarModalOpen = false"
                 @reset="onReset" />
@@ -486,6 +501,43 @@ function onPlaygroundDownload() {
                   :disabled="!tempAvatarSrc"
                   icon="i-lucide-check-circle"
                   @click="avatarStudioRef?.applyCrop()" />
+              </div>
+            </template>
+          </UModal>
+        </div>
+
+        <!-- 9. Square Fixed Uploader (Modal) -->
+        <div class="space-y-4 max-w-2xl mx-auto w-full">
+          <h2 class="text-xl font-semibold">
+            9. Square Fixed (Modal)
+          </h2>
+          <ImgDropZone
+            class="min-h-30! border-dashed!"
+            @load="file => { tempSquareSrc = file; isSquareModalOpen = true }" />
+
+          <UModal v-model:open="isSquareModalOpen" title="Crop Square Photo">
+            <template #body>
+              <ImgStudio
+                ref="squareStudioRef"
+                v-model:src="tempSquareSrc"
+                v-model:active-tool="activeTool9"
+                class="h-auto! min-h-0! aspect-square w-full"
+                :crop="{ shape: 'rect', aspect: 1, fixed: true, width: 800, height: 800 }"
+                :toolbar="{ show: false, items: ['crop'] }"
+                @crop:apply="onSquareCropApply"
+                @crop:cancel="isSquareModalOpen = false"
+                @reset="onReset" />
+            </template>
+            <template #footer>
+              <div class="flex justify-end gap-3">
+                <UButton label="Cancel" color="neutral" variant="ghost" @click="isSquareModalOpen = false" />
+                <UButton
+                  label="Apply Square"
+                  color="primary"
+                  variant="solid"
+                  :disabled="!tempSquareSrc"
+                  icon="i-lucide-check-circle"
+                  @click="squareStudioRef?.applyCrop()" />
               </div>
             </template>
           </UModal>

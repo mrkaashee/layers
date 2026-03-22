@@ -1,13 +1,15 @@
 <script lang="ts" setup>
 import type { StudioTool, ToolbarConfig } from './types'
-import { useMagicKeys, whenever } from '@vueuse/core'
+import { useEventListener } from '@vueuse/core'
 
 const props = withDefaults(defineProps<{
   activeTool: StudioTool
   disabled?: boolean
+  active?: boolean
   config?: ToolbarConfig
 }>(), {
   disabled: false,
+  active: false,
   config: () => ({ show: true, items: ['crop', 'reset'] })
 })
 
@@ -26,24 +28,25 @@ function onToolClick(tool: StudioTool) {
 }
 
 // --- Keyboard Shortcuts ---
-const keys = useMagicKeys({
-  passive: false,
-  onEventFired(e) {
-    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-      e.preventDefault()
-    }
+useEventListener(typeof window !== 'undefined' ? window : null, 'keydown', (e: KeyboardEvent) => {
+  if (!props.active || props.disabled) return
+
+  const isCtrlOrMeta = e.ctrlKey || e.metaKey
+  const key = e.key.toLowerCase()
+
+  // Handle Ctrl+S / Meta+S (Download)
+  if (isCtrlOrMeta && key === 's') {
+    e.preventDefault()
+    onToolClick('download')
+  }
+  // Handle single key shortcuts (Only if NO modifier is pressed)
+  else if (!isCtrlOrMeta && !e.altKey && !e.shiftKey) {
+    if (key === 'c') onToolClick('crop')
+    else if (key === 'r') onToolClick('reset')
+    else if (key === 'escape' && props.activeTool !== 'none') onToolClick('cancel')
+    else if (key === 'enter' && props.activeTool !== 'none') onToolClick('apply')
   }
 })
-
-const { c, r, escape, enter, ctrl_s, meta_s } = keys
-
-whenever(() => c?.value, () => onToolClick('crop'))
-whenever(() => r?.value, () => onToolClick('reset'))
-whenever(() => escape?.value, () => {
-  if (props.activeTool !== 'none') onToolClick('cancel')
-})
-whenever(() => enter?.value && props.activeTool !== 'none', () => onToolClick('apply'))
-whenever(() => ctrl_s?.value || meta_s?.value, () => onToolClick('download'))
 </script>
 
 <template>
