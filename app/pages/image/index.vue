@@ -1,17 +1,106 @@
 <script lang="ts" setup>
 import { ref, computed } from 'vue'
 import type { AspectPreset, CropResult, StudioTool, CropConfig } from '~/components/img/types'
-import ImgStudio from '~/components/img/ImgStudio.vue'
+import ImgStudio from '~/components/img/ImgStudio.client.vue'
 
 // 0. Playground State
+const playgroundHighResSrc = ref('https://picsum.photos/id/10/800/600')
 const playgroundSrc = ref('https://picsum.photos/id/10/800/600')
-const playgroundActiveTool = ref<StudioTool>('crop')
+const playgroundActiveTool = ref<StudioTool>('none')
 const playgroundCropEnabled = ref(true)
 const playgroundCropShape = ref<'rect' | 'round'>('rect')
 const playgroundCropFixed = ref(false)
 const playgroundCropAspect = ref<string | number | null>(null)
 const playgroundZoomEnabled = ref(true)
 const playgroundToolbarShow = ref(true)
+
+const playgroundStudioRef = ref<InstanceType<typeof ImgStudio>>()
+const playgroundExportFormat = ref('image/jpeg')
+const playgroundExportQuality = ref(0.9)
+
+const playgroundImgInfo = ref({ width: 0, height: 0, sizeKb: 0, format: '' })
+
+watch(playgroundHighResSrc, async val => {
+  if (typeof window === 'undefined') return
+  if (!val) return
+  let kb = 0
+  let format = 'URL (External)'
+
+  if (val.startsWith('data:')) {
+    const parts = val.split(',')
+    const header = parts[0] || ''
+    const data = parts[1] || ''
+    format = header.match(/:(.*?);/)?.[1] || 'unknown'
+    kb = (data.length * 0.75) / 1024
+  }
+  else {
+    try {
+      const res = await fetch(val, { method: 'HEAD' })
+      const cl = res.headers.get('content-length')
+      if (cl) kb = parseInt(cl) / 1024
+      format = res.headers.get('content-type') || format
+    }
+    catch {
+      kb = 0
+    }
+  }
+
+  const img = new Image()
+  img.crossOrigin = 'anonymous'
+  img.onload = () => {
+    playgroundImgInfo.value = {
+      width: img.naturalWidth,
+      height: img.naturalHeight,
+      sizeKb: kb,
+      format
+    }
+  }
+  img.src = val
+}, { immediate: true })
+
+const playgroundExportSizeKb = ref(0)
+const isExportingPreview = ref(false)
+
+watch([playgroundHighResSrc, playgroundExportFormat, playgroundExportQuality], ([src, format, quality]) => {
+  if (typeof window === 'undefined') return
+  if (!src) {
+    playgroundExportSizeKb.value = 0
+    playgroundSrc.value = ''
+    return
+  }
+
+  isExportingPreview.value = true
+  const img = new Image()
+  img.crossOrigin = 'anonymous'
+  img.onload = () => {
+    try {
+      const c = document.createElement('canvas')
+      c.width = img.naturalWidth
+      c.height = img.naturalHeight
+      const ctx = c.getContext('2d')
+      if (ctx) {
+        ctx.drawImage(img, 0, 0)
+        const dataUrl = c.toDataURL(format as string, quality as number)
+        playgroundSrc.value = dataUrl
+
+        const data = dataUrl.split(',')[1] || ''
+        playgroundExportSizeKb.value = (data.length * 0.75) / 1024
+      }
+    }
+    catch {
+      // Cross-origin restriction fallback
+      playgroundExportSizeKb.value = 0
+      playgroundSrc.value = src as string
+    }
+    isExportingPreview.value = false
+  }
+  img.onerror = () => {
+    playgroundExportSizeKb.value = 0
+    playgroundSrc.value = src as string
+    isExportingPreview.value = false
+  }
+  img.src = src as string
+}, { immediate: true })
 
 const aspectOptions = [
   { label: 'Free (null)', value: null },
@@ -82,6 +171,10 @@ function onCropCancel() {
 function onReset() {
   console.log('Studio reset')
 }
+
+function onPlaygroundDownload() {
+  playgroundStudioRef.value?.downloadImage('playground-export', playgroundExportFormat.value, playgroundExportQuality.value)
+}
 </script>
 
 <template>
@@ -123,15 +216,81 @@ function onReset() {
           </UFormGroup>
         </UCard>
 
-        <ImgStudio
-          v-model:src="playgroundSrc"
-          v-model:active-tool="playgroundActiveTool"
-          :crop="playgroundCropConfig"
-          :zoom="playgroundZoomEnabled ? { step: 0.1, max: 5 } : false"
-          :toolbar="{ show: playgroundToolbarShow, items: ['crop', 'reset'] }"
-          @crop:apply="onCropApply"
-          @crop:cancel="onCropCancel"
-          @reset="onReset" />
+        <div class="grid grid-cols-1 lg:grid-cols-[1fr_250px] gap-6" :class="{ 'opacity-80 pointer-events-none': isExportingPreview }">
+          <ImgStudio
+            ref="playgroundStudioRef"
+            v-model:active-tool="playgroundActiveTool"
+            :src="playgroundSrc"
+            :crop="playgroundCropConfig"
+            :zoom="playgroundZoomEnabled ? { step: 0.1, max: 5 } : false"
+            :toolbar="{ show: playgroundToolbarShow, items: ['crop', 'reset'] }"
+            @update:src="val => playgroundHighResSrc = val"
+            @crop:apply="res => playgroundHighResSrc = res.dataUrl"
+            @crop:cancel="onCropCancel"
+            @reset="playgroundHighResSrc = 'https://picsum.photos/id/10/800/600'" />
+
+          <UCard>
+            <h3 class="font-medium mb-4 flex items-center gap-2">
+              <UIcon name="i-lucide-image" class="w-5 h-5" />
+              Image Info
+            </h3>
+
+            <div class="bg-gray-50 dark:bg-gray-800/50 p-3 rounded-lg text-sm text-gray-600 dark:text-gray-400 mb-6 space-y-1.5">
+              <div class="flex justify-between items-center">
+                <span>Dimensions</span>
+                <span class="font-medium text-gray-900 dark:text-white">{{ playgroundImgInfo.width }} &times; {{ playgroundImgInfo.height }}</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span>Format</span>
+                <span class="font-medium text-gray-900 dark:text-white truncate max-w-30" :title="playgroundImgInfo.format">{{ playgroundImgInfo.format }}</span>
+              </div>
+              <div v-if="playgroundImgInfo.sizeKb > 0" class="flex justify-between items-center">
+                <span>Est. Size</span>
+                <span class="font-medium text-gray-900 dark:text-white">{{ playgroundImgInfo.sizeKb >= 1024 ? (playgroundImgInfo.sizeKb / 1024).toFixed(2) + ' MB' : playgroundImgInfo.sizeKb.toFixed(1) + ' KB' }}</span>
+              </div>
+            </div>
+
+            <USeparator class="my-6" />
+
+            <h3 class="font-medium mb-4 flex items-center gap-2">
+              <UIcon name="i-lucide-download" class="w-5 h-5" />
+              Export Options
+            </h3>
+
+            <div class="space-y-4">
+              <UFormGroup label="Format">
+                <USelect v-model="playgroundExportFormat" :items="['image/jpeg', 'image/png', 'image/webp']" />
+              </UFormGroup>
+
+              <UFormGroup label="Quality">
+                <div class="flex items-center gap-2">
+                  <USlider
+                    v-model="playgroundExportQuality"
+                    :min="0.1"
+                    :max="1"
+                    :step="0.1"
+                    class="flex-1"
+                    color="primary" />
+                  <span class="text-sm text-gray-500 w-8 text-right">{{ playgroundExportQuality.toFixed(1) }}</span>
+                </div>
+              </UFormGroup>
+
+              <div v-if="playgroundExportSizeKb > 0" class="flex justify-between items-center text-sm py-2 px-3 bg-primary-50 dark:bg-primary-900/20 rounded-md text-primary">
+                <span>Final Export Size</span>
+                <span class="font-bold">{{ playgroundExportSizeKb >= 1024 ? (playgroundExportSizeKb / 1024).toFixed(2) + ' MB' : playgroundExportSizeKb.toFixed(1) + ' KB' }}</span>
+              </div>
+
+              <div class="pt-4 mt-2 border-t border-gray-100 dark:border-gray-800">
+                <UButton
+                  label="Download"
+                  color="primary"
+                  block
+                  icon="i-lucide-download"
+                  @click="onPlaygroundDownload" />
+              </div>
+            </div>
+          </UCard>
+        </div>
       </UCard>
       <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
         <!-- 1. Standard Instance -->

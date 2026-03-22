@@ -34,6 +34,12 @@ export interface CropConfig {
   quality?: number
 }
 
+export interface ExportConfig {
+  formats?: ('image/jpeg' | 'image/png' | 'image/webp' | (string & {}))[]
+  defaultFormat?: string
+  quality?: number
+}
+
 export interface ZoomConfig {
   /** Min zoom scale. Default is auto (fits crop) */
   min?: number

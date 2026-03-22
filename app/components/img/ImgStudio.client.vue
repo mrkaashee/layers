@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { ref, watch, computed } from 'vue'
-import type { CropConfig, CropResult, StudioTool, ToolbarConfig, ZoomConfig } from './types'
+import type { CropConfig, CropResult, StudioTool, ToolbarConfig, ZoomConfig, ExportConfig } from './types'
 import ImgDropZone from './ImgDropZone.vue'
 import ImgToolbar from './ImgToolbar.vue'
 import ImgCropper from './ImgCropper.vue'
@@ -11,6 +11,7 @@ const props = withDefaults(defineProps<{
   crop?: boolean | CropConfig
   zoom?: boolean | ZoomConfig
   toolbar?: boolean | ToolbarConfig
+  export?: ExportConfig
   disabled?: boolean
 }>(), {
   src: '',
@@ -86,6 +87,21 @@ watch(activeTool, tool => {
   }
 })
 
+// --- Export UI State ---
+const isDownloadModalOpen = ref(false)
+const selectedExportFormat = ref(props.export?.defaultFormat || props.export?.formats?.[0] || 'image/jpeg')
+
+watch(() => props.export?.defaultFormat, val => {
+  if (val) selectedExportFormat.value = val
+})
+
+const exportFormatOptions = computed(() => {
+  return (props.export?.formats || []).map(f => ({
+    label: f.replace('image/', '').toUpperCase(),
+    value: f
+  }))
+})
+
 // --- Handlers ---
 function onImageLoad(dataUrl: string) {
   internalSrc.value = dataUrl
@@ -117,7 +133,12 @@ function onToolbarAction(action: 'apply' | 'cancel' | 'reset' | 'download') {
   }
 
   if (action === 'download') {
-    downloadImage()
+    if (exportFormatOptions.value.length > 0) {
+      isDownloadModalOpen.value = true
+    }
+    else {
+      downloadImage('image')
+    }
     return
   }
 
@@ -143,25 +164,74 @@ function cancelCrop() {
   cropperRef.value?.cancel()
 }
 
-function downloadImage(filename = 'image.png') {
+function downloadImage(filename = 'image', reqFormat?: string, reqQuality?: number) {
   if (!internalSrc.value) return
 
-  // Convert data URL → Blob → Object URL for reliable cross-browser download
-  const [header, data] = internalSrc.value.split(',')
-  const mime = header.match(/:(.*?);/)?.[1] ?? 'image/png'
-  const bytes = atob(data)
-  const buf = new Uint8Array(bytes.length)
-  for (let i = 0; i < bytes.length; i++) buf[i] = bytes.charCodeAt(i)
-  const blob = new Blob([buf], { type: mime })
-  const url = URL.createObjectURL(blob)
+  const targetFormat = reqFormat || props.export?.defaultFormat
+  const targetQuality = reqQuality || props.export?.quality || 0.9
 
-  const a = document.createElement('a')
-  a.href = url
-  a.download = filename
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
-  URL.revokeObjectURL(url)
+  // If there's no target format, or it's implicitly just using the existing dataUrl's format, download directly
+  if (!targetFormat || internalSrc.value.startsWith(`data:${targetFormat};`)) {
+    const parts = internalSrc.value.split(',')
+    const header = parts[0] || ''
+    const data = parts[1] || ''
+    if (!data) return
+
+    const mime = header.match(/:(.*?);/)?.[1] ?? 'image/png'
+    const bytes = atob(data)
+    const buf = new Uint8Array(bytes.length)
+    for (let i = 0; i < bytes.length; i++) buf[i] = bytes.charCodeAt(i)
+    const blob = new Blob([buf], { type: mime })
+    const url = URL.createObjectURL(blob)
+
+    const a = document.createElement('a')
+    a.href = url
+    const ext = mime.split('/')[1] || 'png'
+    a.download = `${filename}.${ext}`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+    return
+  }
+
+  // Convert via Canvas
+  const img = new Image()
+  img.onload = () => {
+    const c = document.createElement('canvas')
+    c.width = img.naturalWidth
+    c.height = img.naturalHeight
+    const ctx = c.getContext('2d')!
+    ctx.drawImage(img, 0, 0)
+    const dataUrl = c.toDataURL(targetFormat, targetQuality)
+
+    const parts = dataUrl.split(',')
+    const header = parts[0] || ''
+    const data = parts[1] || ''
+    if (!data) return
+
+    const mime = header.match(/:(.*?);/)?.[1] ?? 'image/png'
+    const bytes = atob(data)
+    const buf = new Uint8Array(bytes.length)
+    for (let i = 0; i < bytes.length; i++) buf[i] = bytes.charCodeAt(i)
+    const blob = new Blob([buf], { type: mime })
+    const url = URL.createObjectURL(blob)
+
+    const a = document.createElement('a')
+    a.href = url
+    const ext = mime.split('/')[1] || 'png'
+    a.download = `${filename}.${ext}`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+  img.src = internalSrc.value
+}
+
+function confirmDownload() {
+  downloadImage('image', selectedExportFormat.value)
+  isDownloadModalOpen.value = false
 }
 
 defineExpose({
@@ -234,5 +304,21 @@ defineExpose({
       <slot name="actions" />
     </div>
   </template>
-  <!-- </div> -->
+
+  <!-- Download Modal -->
+  <UModal v-model:open="isDownloadModalOpen" title="Download Options">
+    <template #body>
+      <div class="space-y-4">
+        <UFormGroup v-if="exportFormatOptions.length" label="Export Format">
+          <USelect v-model="selectedExportFormat" :items="exportFormatOptions" value-key="value" />
+        </UFormGroup>
+      </div>
+    </template>
+    <template #footer>
+      <div class="flex justify-end gap-3">
+        <UButton label="Cancel" color="neutral" variant="ghost" @click="isDownloadModalOpen = false" />
+        <UButton label="Download" icon="i-lucide-download" color="primary" @click="confirmDownload" />
+      </div>
+    </template>
+  </UModal>
 </template>
