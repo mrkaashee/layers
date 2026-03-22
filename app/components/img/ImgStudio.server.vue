@@ -22,8 +22,8 @@ defineModel<StudioTool>('activeTool', { default: 'none' })
 </script>
 
 <template>
-  <UCard class="w-full animate-pulse border-2 border-dashed border-muted" :ui="{ body: 'flex flex-col items-center justify-center min-h-100' }">
+  <div class="h-150 min-h-100 flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-800 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl">
     <UIcon name="i-lucide-image" class="w-12 h-12 text-muted mb-3" />
     <span class="text-sm font-medium text-muted">Loading Image Studio...</span>
-  </UCard>
+  </div>
 </template>

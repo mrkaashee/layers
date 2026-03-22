@@ -3,6 +3,14 @@ import { ref, computed } from 'vue'
 import type { AspectPreset, CropResult, StudioTool, CropConfig } from '~/components/img/types'
 import ImgStudio from '~/components/img/ImgStudio.client.vue'
 
+const presets: AspectPreset[] = [
+  { label: 'Original', value: null },
+  { label: 'Square', value: 1 },
+  { label: '4:5', value: 0.8 },
+  { label: '3:2', value: 1.5 },
+  { label: '16:9', value: 16 / 9 }
+]
+
 // 0. Playground State
 const playgroundHighResSrc = ref('https://picsum.photos/id/10/800/600')
 const playgroundSrc = ref('https://picsum.photos/id/10/800/600')
@@ -130,6 +138,7 @@ const activeTool6 = ref<StudioTool>('crop')
 const activeTool7 = ref<StudioTool>('crop')
 const activeTool8 = ref<StudioTool>('crop')
 const activeTool9 = ref<StudioTool>('crop')
+const activeTool10 = ref<StudioTool>('crop')
 
 const src1 = ref('https://picsum.photos/id/237/800/600')
 const src2 = ref('https://picsum.photos/id/1015/800/600')
@@ -137,7 +146,9 @@ const src3 = ref('https://picsum.photos/id/1025/800/600')
 const src4 = ref('https://picsum.photos/id/1035/800/600')
 const src6 = ref('https://picsum.photos/id/1045/800/600')
 const src7 = ref('https://picsum.photos/id/1055/800/600')
-const src8 = ref('https://picsum.photos/id/1065/800/600')
+const src8 = ref('https://picsum.photos/id/10/1200/800')
+const src10 = ref('')
+const coverStudioRef = ref<InstanceType<typeof ImgStudio>>()
 
 const studio1Ref = ref<InstanceType<typeof ImgStudio>>()
 
@@ -149,14 +160,6 @@ const avatarStudioRef = ref<InstanceType<typeof ImgStudio>>()
 const tempSquareSrc = ref('')
 const isSquareModalOpen = ref(false)
 const squareStudioRef = ref<InstanceType<typeof ImgStudio>>()
-
-const presets: AspectPreset[] = [
-  { label: 'Free', value: null },
-  { label: 'Square (1:1)', value: 1 },
-  { label: 'Video (16:9)', value: 16 / 9 },
-  { label: 'Portrait (9:16)', value: 9 / 16 },
-  { label: 'Photo (4:3)', value: 4 / 3 }
-]
 
 function onCropApply(res: CropResult) {
   console.log('Crop applied')
@@ -191,6 +194,10 @@ async function onSquareCropApply(_res: CropResult) {
   }
   isSquareModalOpen.value = false
   tempSquareSrc.value = ''
+}
+
+function onCoverCropApply(res: CropResult) {
+  console.log('Cover Photo applied!', res)
 }
 
 function onCropCancel() {
@@ -541,6 +548,43 @@ function onPlaygroundDownload() {
               </div>
             </template>
           </UModal>
+        </div>
+
+        <!-- 10. Facebook Cover Photo (Inline) -->
+        <div class="space-y-4 max-w-4xl mx-auto w-full">
+          <div class="flex items-center justify-between">
+            <h2 class="text-xl font-semibold">
+              10. Facebook Cover Photo (Inline)
+            </h2>
+            <UButton
+              v-if="src10"
+              label="Done Adjusting"
+              color="primary"
+              variant="solid"
+              icon="i-lucide-check"
+              @click="coverStudioRef?.applyCrop()" />
+          </div>
+
+          <p class="text-sm text-muted">
+            Select an image and drag to adjust your cover photo. Fixed 2.7:1 aspect ratio.
+          </p>
+
+          <div class="w-full aspect-[2.7/1] rounded-xl bg-gray-100 dark:bg-gray-800 overflow-hidden border border-muted relative">
+            <ImgDropZone
+              v-if="!src10"
+              class="border-none! h-full w-full"
+              @load="file => src10 = file" />
+
+            <ImgStudio
+              v-else
+              ref="coverStudioRef"
+              v-model:src="src10"
+              v-model:active-tool="activeTool10"
+              class="h-full! w-full! border-none! rounded-none!"
+              :crop="{ aspect: 2.7, fixed: true, naked: true, width: 851, height: 315 }"
+              :toolbar="{ show: false, items: ['crop'] }"
+              @crop:apply="onCoverCropApply" />
+          </div>
         </div>
       </div>
     </UContainer>

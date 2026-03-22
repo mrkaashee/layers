@@ -31,6 +31,7 @@ export interface CropConfig {
   presets?: AspectPreset[]
   shape?: 'rect' | 'round'
   fixed?: boolean
+  naked?: boolean
   size?: number
   width?: number
   height?: number
