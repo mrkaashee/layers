@@ -313,9 +313,9 @@ defineExpose({
   <UModal v-model:open="isDownloadModalOpen" title="Download Options">
     <template #body>
       <div class="space-y-4">
-        <UFormGroup v-if="exportFormatOptions.length" label="Export Format">
+        <UFormField v-if="exportFormatOptions.length" label="Export Format">
           <USelect v-model="selectedExportFormat" :items="exportFormatOptions" value-key="value" />
-        </UFormGroup>
+        </UFormField>
       </div>
     </template>
     <template #footer>

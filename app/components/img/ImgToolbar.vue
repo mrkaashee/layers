@@ -72,7 +72,6 @@ function onToolClick(tool: StudioTool) {
 
       <UButton
         v-if="item === 'download'"
-        v-tooltip="'Download'"
         icon="i-lucide-download"
         color="neutral"
         variant="ghost"

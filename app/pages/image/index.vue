@@ -203,24 +203,24 @@ function onPlaygroundDownload() {
         </h2>
 
         <UCard :ui="{ body: 'grid grid-cols-2 md:grid-cols-4 gap-4 mb-4' }">
-          <UFormGroup label="Enable Cropper">
+          <UFormField label="Enable Cropper">
             <UCheckbox v-model="playgroundCropEnabled" label="Crop Tool" />
-          </UFormGroup>
-          <UFormGroup label="Shape">
+          </UFormField>
+          <UFormField label="Shape">
             <USelect v-model="playgroundCropShape" :items="['rect', 'round']" />
-          </UFormGroup>
-          <UFormGroup label="Fixed Cropper">
+          </UFormField>
+          <UFormField label="Fixed Cropper">
             <UCheckbox v-model="playgroundCropFixed" label="Fixed Mode" />
-          </UFormGroup>
-          <UFormGroup label="Aspect Ratio">
+          </UFormField>
+          <UFormField label="Aspect Ratio">
             <USelect v-model="playgroundCropAspect" :items="aspectOptions" value-key="value" />
-          </UFormGroup>
-          <UFormGroup label="Enable Zoom">
+          </UFormField>
+          <UFormField label="Enable Zoom">
             <UCheckbox v-model="playgroundZoomEnabled" label="Zoom Config" />
-          </UFormGroup>
-          <UFormGroup label="Show Toolbar">
+          </UFormField>
+          <UFormField label="Show Toolbar">
             <UCheckbox v-model="playgroundToolbarShow" label="Sidebar" />
-          </UFormGroup>
+          </UFormField>
         </UCard>
 
         <div class="grid grid-cols-1 lg:grid-cols-[1fr_250px] gap-6" :class="{ 'opacity-80 pointer-events-none': isExportingPreview }">
@@ -265,22 +265,19 @@ function onPlaygroundDownload() {
             </h3>
 
             <div class="space-y-4">
-              <UFormGroup label="Format">
-                <USelect v-model="playgroundExportFormat" :items="['image/jpeg', 'image/png', 'image/webp']" />
-              </UFormGroup>
+              <UFormField label="Format">
+                <USelect v-model="playgroundExportFormat" :items="['image/jpeg', 'image/png', 'image/webp']" class="w-full" />
+              </UFormField>
 
-              <UFormGroup label="Quality">
-                <div class="flex items-center gap-2">
-                  <USlider
-                    v-model="playgroundExportQuality"
-                    :min="0.1"
-                    :max="1"
-                    :step="0.1"
-                    class="flex-1"
-                    color="primary" />
-                  <span class="text-sm text-gray-500 w-8 text-right">{{ playgroundExportQuality.toFixed(1) }}</span>
-                </div>
-              </UFormGroup>
+              <UFormField label="Quality" :hint="playgroundExportQuality.toFixed(1)">
+                <USlider
+                  v-model="playgroundExportQuality"
+                  :min="0.1"
+                  :max="1"
+                  :step="0.1"
+                  class="flex-1"
+                  color="primary" />
+              </UFormField>
 
               <div v-if="playgroundExportSizeKb > 0" class="flex justify-between items-center text-sm py-2 px-3 bg-primary-50 dark:bg-primary-900/20 rounded-md text-primary">
                 <span>Final Export Size</span>
