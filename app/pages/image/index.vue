@@ -149,6 +149,7 @@ const src6 = ref('https://picsum.photos/id/1045/800/600')
 const src7 = ref('https://picsum.photos/id/1055/800/600')
 const src8 = ref('https://picsum.photos/id/10/1200/800')
 const src10 = ref('')
+const coverResult = ref('')
 const dropZone10 = ref<InstanceType<typeof ImgDropZone>>()
 const coverStudioRef = ref<InstanceType<typeof ImgStudio>>()
 
@@ -199,6 +200,7 @@ async function onSquareCropApply(_res: CropResult) {
 }
 
 function onCoverCropApply(res: CropResult) {
+  coverResult.value = res.dataUrl
   console.log('Cover Photo applied!', res)
 }
 
@@ -737,14 +739,24 @@ function onPlaygroundDownload() {
                   class="w-5 h-5 text-primary" />
                 <span class="text-xs font-black uppercase tracking-[0.2em] text-neutral-400">Desktop View Preview (2.7:1)</span>
               </div>
-              <UButton
-                v-if="src10"
-                label="Confirm Cover"
-                color="primary"
-                variant="solid"
-                icon="i-lucide-check-circle"
-                class="rounded-full px-6 font-bold"
-                @click="coverStudioRef?.applyCrop()" />
+              <div class="flex items-center gap-2">
+                <UButton
+                  v-if="coverResult"
+                  label="Change Photo"
+                  color="neutral"
+                  variant="ghost"
+                  icon="i-lucide-image"
+                  class="rounded-full px-4 font-bold"
+                  @click="coverResult = ''; src10 = ''; activeTool10 = 'crop'" />
+                <UButton
+                  v-if="src10 && !coverResult"
+                  label="Confirm Cover"
+                  color="primary"
+                  variant="solid"
+                  icon="i-lucide-check-circle"
+                  class="rounded-full px-6 font-bold"
+                  @click="coverStudioRef?.applyCrop()" />
+              </div>
             </div>
 
             <div class="w-full aspect-[2.7/1] relative bg-neutral-100 dark:bg-neutral-950 group">
@@ -766,8 +778,16 @@ function onPlaygroundDownload() {
                 </template>
               </ImgDropZone>
 
+              <!-- Confirmed Result: full-bleed cover -->
+              <img
+                v-if="coverResult"
+                :src="coverResult"
+                class="absolute inset-0 w-full h-full object-cover"
+                alt="Cover Photo">
+
+              <!-- Cropping State -->
               <ImgStudio
-                v-else
+                v-else-if="src10"
                 ref="coverStudioRef"
                 v-model:src="src10"
                 v-model:active-tool="activeTool10"
@@ -776,9 +796,9 @@ function onPlaygroundDownload() {
                 :toolbar="{ show: false, items: ['crop', 'apply', 'cancel', 'reset'] }"
                 @crop:apply="onCoverCropApply" />
 
-              <!-- Decorative Gradient -->
+              <!-- Bottom gradient (shown in both states) -->
               <div
-                v-if="src10"
+                v-if="src10 || coverResult"
                 class="absolute inset-x-0 bottom-0 h-32 bg-linear-to-t from-black/60 to-transparent pointer-events-none" />
             </div>
           </UCard>
