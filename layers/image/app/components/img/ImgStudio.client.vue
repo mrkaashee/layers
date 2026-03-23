@@ -15,13 +15,15 @@ const props = withDefaults(defineProps<{
   toolbar?: boolean | ToolbarConfig
   export?: ExportConfig
   disabled?: boolean
+  hideActions?: boolean
 }>(), {
   src: '',
   accept: 'image/*',
   crop: true,
   zoom: false,
   toolbar: true,
-  disabled: false
+  disabled: false,
+  hideActions: undefined
 })
 
 const emit = defineEmits<{
@@ -78,6 +80,7 @@ watch(isCropping, val => {
 })
 
 const hideActions = computed(() => {
+  if (props.hideActions !== undefined) return props.hideActions
   const items = normalizedToolbar.value.items || []
   return items.includes('apply') || items.includes('cancel') || items.includes('reset')
 })
